@@ -1,0 +1,43 @@
+{
+  "title": "الأخبار والإعلانات",
+  "createAnnouncement": "إنشاء إعلان",
+  "createAnnouncementInfo": "سيتم تنفيذ وظيفة إنشاء الإعلان قريباً",
+  "filters": {
+    "searchPlaceholder": "البحث في الإعلانات...",
+    "label": "الفلاتر",
+    "committee": "اللجنة",
+    "council": "المجلس",
+    "visibility": "الظهور",
+    "all": "الكل",
+    "public": "عام",
+    "private": "خاص",
+    "clearAll": "مسح جميع الفلاتر"
+  },
+  "pagination": {
+    "showing": "عرض",
+    "of": "من",
+    "perPage": "لكل صفحة"
+  },
+  "emptyState": {
+    "title": "لا توجد إعلانات",
+    "description": "لا توجد إعلانات للعرض في الوقت الحالي."
+  },
+  "details": {
+    "back": "العودة إلى الأخبار",
+    "backToNews": "العودة إلى الأخبار",
+    "visitLink": "زيارة الرابط",
+    "public": "عام",
+    "private": "خاص",
+    "noDescription": "لا يوجد وصف متاح.",
+    "viewFullArticle": "عرض المقال الكامل",
+    "information": "المعلومات",
+    "committee": "اللجنة",
+    "council": "المجلس",
+    "createdBy": "تم الإنشاء بواسطة",
+    "actions": "الإجراءات",
+    "edit": "تعديل الإعلان",
+    "openLink": "فتح الرابط",
+    "notFound": "الإعلان غير موجود",
+    "notFoundDescription": "الإعلان الذي تبحث عنه غير موجود أو تم إزالته."
+  }
+}

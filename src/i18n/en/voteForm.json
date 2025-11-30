@@ -1,0 +1,32 @@
+{
+  "createTitle": "Create Vote",
+  "createSubtitle": "Fill in the details to create a new vote",
+  "editTitle": "Edit Vote",
+  "editSubtitle": "Update the vote information",
+  "loading": "Loading vote data...",
+  "sections": {
+    "basicInfo": "Basic Information",
+    "source": "Source",
+    "dates": "Dates",
+    "choices": "Choices"
+  },
+  "question": "Question",
+  "questionPlaceholder": "Enter the vote question...",
+  "questionRequired": "Question is required",
+  "meeting": "Meeting",
+  "noMeeting": "No Meeting (Ad-hoc)",
+  "agendaItem": "Agenda Item",
+  "selectAgendaItem": "Select agenda item (optional)",
+  "startDate": "Start Date",
+  "endDate": "End Date",
+  "addChoice": "Add Choice",
+  "choicePlaceholder": "Choice {{number}}",
+  "choiceRequired": "Choice text is required",
+  "atLeastOneChoice": "At least one choice is required",
+  "noCommitteeSelected": "Please select a committee first",
+  "maxLength500": "Maximum length is 500 characters",
+  "createSuccess": "Vote created successfully",
+  "updateSuccess": "Vote updated successfully",
+  "error": "An error occurred"
+}
+

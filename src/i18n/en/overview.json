@@ -1,0 +1,39 @@
+{
+  "title": "Overview",
+  "committeeInfo": "Committee Information",
+  "formationDate": "Formation Date",
+  "totalMembers": "Total Members",
+  "totalMeetings": "Total Meetings",
+  "chairperson": "Chairperson",
+  "viceChairperson": "Vice Chairperson",
+  "status": {
+    "active": "Active",
+    "archived": "Archived",
+    "expired": "Expired"
+  },
+  "kpis": {
+    "meetingsThisMonth": "Meetings This Month",
+    "decisionsPending": "Decisions Pending",
+    "activeVotes": "Active Votes",
+    "tasksInProgress": "Tasks In Progress",
+    "tasksOverdue": "Tasks Overdue",
+    "nextMeetingCountdown": "Next Meeting"
+  },
+  "upcomingMeeting": "Upcoming Meeting",
+  "noUpcomingMeeting": "No upcoming meetings scheduled",
+  "online": "Online",
+  "onsite": "Onsite",
+  "timeUntilMeeting": "Time until meeting",
+  "meetingStartingSoon": "Starting soon",
+  "agenda": "Agenda",
+  "joinMeeting": "Join Meeting",
+  "viewDetails": "View Details",
+  "days": "days",
+  "hours": "hours",
+  "minutes": "minutes",
+  "latestActivity": "Latest Activity",
+  "noActivities": "No recent activity",
+  "quickActions": "Quick Actions",
+  "noCommitteeSelected": "No committee selected. Please select a committee to view its overview."
+}
+

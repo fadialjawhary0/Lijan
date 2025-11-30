@@ -1,0 +1,48 @@
+{
+  "title": "Calendar",
+  "close": "Close",
+  "viewDetails": "View Details",
+  "buttons": {
+    "today": "Today",
+    "month": "Month",
+    "week": "Week",
+    "day": "Day",
+    "list": "List"
+  },
+  "eventTypes": {
+    "meeting": "Meeting",
+    "task": "Task",
+    "vote": "Vote",
+    "announcement": "Announcement",
+    "event": "Event"
+  },
+  "eventDetails": {
+    "dateTime": "Date & Time",
+    "location": "Location",
+    "link": "Link",
+    "assignedTo": "Assigned To",
+    "progress": "Progress",
+    "choices": "Choices",
+    "choiceCount": "choices"
+  },
+  "filters": {
+    "title": "Filters",
+    "eventTypes": "Event Types",
+    "meetings": "Meetings",
+    "tasks": "Tasks",
+    "votes": "Votes",
+    "news": "News",
+    "member": "Member",
+    "allMembers": "All Members"
+  },
+  "sync": {
+    "title": "Sync & Export",
+    "exportICS": "Export to ICS",
+    "googleCalendar": "Sync with Google Calendar",
+    "outlook": "Sync with Outlook",
+    "description": "Export your calendar events to external calendar applications",
+    "exportSuccess": "Calendar exported successfully",
+    "exportError": "Error exporting calendar",
+    "googleCalendarInfo": "Google Calendar sync will be available soon"
+  }
+}

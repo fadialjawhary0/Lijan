@@ -1,0 +1,75 @@
+{
+  "title": "Members",
+  "member": "member",
+  "members": "members",
+  "addMemberButton": "Add Member",
+  "edit": "Edit",
+  "remove": "Remove",
+  "changeRole": "Change Role",
+  "changeRoleInfo": "Role change functionality will be implemented soon",
+  "removeSuccess": "Member {{name}} has been removed successfully",
+  "external": "External",
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "table": {
+    "name": "Name",
+    "role": "Role",
+    "organization": "Organization",
+    "status": "Status",
+    "startDate": "Start Date",
+    "actions": "Actions"
+  },
+  "filters": {
+    "searchPlaceholder": "Search by name, email, organization...",
+    "role": "Role",
+    "status": "Status",
+    "organization": "Organization",
+    "allRoles": "All Roles",
+    "allStatuses": "All Statuses",
+    "allOrganizations": "All Organizations",
+    "clearAll": "Clear All Filters"
+  },
+  "noMembers": "No Members",
+  "noMembersDescription": "No members found matching your criteria.",
+  "addMember": {
+    "title": "Add Member",
+    "externalMember": "External Member",
+    "selectUser": "Select User",
+    "selectUserPlaceholder": "Search and select a user...",
+    "name": "Name",
+    "namePlaceholder": "Enter member name",
+    "nameRequired": "Name is required",
+    "email": "Email",
+    "emailPlaceholder": "Enter email address",
+    "emailRequired": "Email is required",
+    "emailInvalid": "Invalid email address",
+    "company": "Company",
+    "companyPlaceholder": "Enter company name",
+    "title": "Title",
+    "titlePlaceholder": "Enter job title",
+    "role": "Role",
+    "selectRole": "Select a role",
+    "roleRequired": "Role is required",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "notes": "Notes",
+    "notesPlaceholder": "Add any additional notes...",
+    "save": "Save",
+    "saving": "Saving...",
+    "success": "Member added successfully",
+    "error": "Failed to add member",
+    "memberIdError": "Failed to get member ID",
+    "noCommitteeSelected": "No committee selected. Please select a committee first.",
+    "externalNotSupported": "External members are not yet supported"
+  },
+  "noCommitteeSelected": "Please select a committee first",
+  "deleteDialog": {
+    "title": "Remove Member",
+    "message": "Are you sure you want to remove {{name}} from this committee? This action cannot be undone."
+  },
+  "cancel": "Cancel",
+  "actions": "Actions"
+}
+

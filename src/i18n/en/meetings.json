@@ -1,0 +1,70 @@
+{
+  "title": "Meetings",
+  "createMeeting": "Create Meeting",
+  "createMeetingInfo": "Create meeting functionality will be implemented soon",
+  "editMeetingInfo": "Edit meeting functionality will be implemented soon",
+  "cancelMeetingInfo": "Cancel meeting functionality will be implemented soon",
+  "meetingStarted": "Meeting started successfully",
+  "minutesPublished": "Minutes published successfully",
+  "exportInfo": "Export functionality will be implemented soon",
+  "deleteSuccess": "Meeting {{title}} has been deleted successfully",
+  "view": "View",
+  "edit": "Edit",
+  "delete": "Delete",
+  "cancel": "Cancel",
+  "joinMeeting": "Join Meeting",
+  "startMeeting": "Start Meeting",
+  "publishMinutes": "Publish Minutes",
+  "export": "Export",
+  "online": "Online",
+  "onsite": "Onsite",
+  "status": {
+    "upcoming": "Upcoming",
+    "inProgress": "In Progress",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "postponed": "Postponed"
+  },
+  "type": {
+    "regular": "Regular",
+    "emergency": "Emergency",
+    "virtual": "Virtual",
+    "physical": "Physical"
+  },
+  "table": {
+    "title": "Title",
+    "type": "Type",
+    "dateTime": "Date & Time",
+    "location": "Location",
+    "status": "Status",
+    "metrics": "Metrics",
+    "actions": "Actions",
+    "organizer": "Organizer"
+  },
+  "filters": {
+    "searchPlaceholder": "Search by title, agenda item, decision number...",
+    "type": "Type",
+    "status": "Status",
+    "location": "Location",
+    "organizer": "Organizer",
+    "dateFrom": "Date From",
+    "dateTo": "Date To",
+    "allTypes": "All Types",
+    "allStatuses": "All Statuses",
+    "allLocations": "All Locations",
+    "allOrganizers": "All Organizers",
+    "clearAll": "Clear All Filters"
+  },
+  "noMeetings": "No Meetings",
+  "noMeetingsDescription": "No meetings found matching your criteria.",
+  "mom": {
+    "draft": "Draft",
+    "published": "Published"
+  },
+  "deleteDialog": {
+    "title": "Delete Meeting",
+    "message": "Are you sure you want to delete the meeting \"{{title}}\"? This action cannot be undone."
+  },
+  "actions": "Actions"
+}
+

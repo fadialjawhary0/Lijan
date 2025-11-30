@@ -1,0 +1,37 @@
+{
+  "createTitle": "Create Announcement",
+  "createSubtitle": "Fill in the details to create a new announcement",
+  "editTitle": "Edit Announcement",
+  "editSubtitle": "Update the announcement information",
+  "loading": "Loading announcement data...",
+  "sections": {
+    "basicInfo": "Basic Information",
+    "association": "Association",
+    "visibility": "Visibility"
+  },
+  "title": "Title",
+  "titlePlaceholder": "Enter announcement title",
+  "titleRequired": "Title is required",
+  "description": "Description",
+  "descriptionPlaceholder": "Enter announcement description",
+  "link": "Link",
+  "linkPlaceholder": "Enter URL (e.g., https://example.com/article)",
+  "linkHelpText": "Optional: Add a link to the full article or related resource",
+  "committee": "Committee",
+  "selectCommittee": "Select Committee",
+  "council": "Council",
+  "selectCouncil": "Select Council",
+  "noCouncil": "No Council",
+  "isPublic": "Make this announcement public",
+  "isPublicHelpText": "Public announcements are visible to all users. Private announcements are only visible to members of the associated committee or council.",
+  "create": "Create",
+  "update": "Update",
+  "cancel": "Cancel",
+  "createSuccess": "Announcement created successfully",
+  "updateSuccess": "Announcement updated successfully",
+  "error": "An error occurred",
+  "maxLength200": "Maximum length is 200 characters",
+  "maxLength2000": "Maximum length is 2000 characters",
+  "invalidUrl": "Please enter a valid URL (starting with http:// or https://)"
+}
+

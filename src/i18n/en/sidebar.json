@@ -1,0 +1,16 @@
+{
+  "sidebar": {
+    "overview": "Overview",
+    "members": "Members",
+    "meetings": "Meetings",
+    "decisions": "Decisions",
+    "voting": "Voting",
+    "tasks": "Tasks",
+    "documents": "Documents",
+    "news": "News",
+    "calendar": "Calendar",
+    "requests": "Requests",
+    "messages": "Messages",
+    "logout": "Logout"
+  }
+}

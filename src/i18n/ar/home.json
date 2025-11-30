@@ -1,0 +1,67 @@
+{
+  "title": "الرئيسية",
+  "subtitle": "مرحباً بك في لوحة تحكم اللجان",
+  "breadcrumbs": {
+    "home": "الرئيسية"
+  },
+  "kpis": {
+    "totalCommittees": "إجمالي اللجان",
+    "totalCommitteesDesc": "جميع اللجان",
+    "totalMeetings": "إجمالي الاجتماعات",
+    "totalMeetingsDesc": "جميع الاجتماعات",
+    "myTasksCount": "مهامي",
+    "myTasksCountDesc": "المهام المعلقة",
+    "meetingsToday": "اجتماعات اليوم",
+    "meetingsTodayDesc": "القادمة اليوم"
+  },
+  "councils": "المجالس",
+  "standaloneCommittees": "اللجان المستقلة",
+  "createCouncil": "إنشاء مجلس",
+  "createCommittee": "إنشاء لجنة",
+  "myCommittees": "لجاني",
+  "committee": "لجنة",
+  "committees": "لجان",
+  "noCommittees": "لا توجد لجان",
+  "noCommitteesDescription": "أنت لست عضواً في أي لجنة بعد.",
+  "noCouncils": "لا توجد مجالس",
+  "noCouncilsDescription": "لم يتم العثور على مجالس.",
+  "noStandaloneCommittees": "لا توجد لجان مستقلة",
+  "noStandaloneCommitteesDescription": "جميع اللجان تنتمي إلى مجالس.",
+  "committeesUnderCouncil": "اللجان التابعة لهذا المجلس",
+  "noCommitteesInCouncil": "هذا المجلس لا يحتوي على لجان.",
+  "formedOn": "تم التكوين في",
+  "members": "أعضاء",
+  "committeeCreatedOn": "تاريخ إنشاء اللجنة",
+  "upcomingMeetings": "الاجتماعات القادمة",
+  "completedMeetings": "الاجتماعات المكتملة",
+  "meetingInProgress": "اجتماع قيد التنفيذ",
+  "noUpcomingMeeting": "لا يوجد اجتماع قادم",
+  "weeks": "أسابيع",
+  "days": "أيام",
+  "hours": "ساعات",
+  "minutes": "دقائق",
+  "seconds": "ثواني",
+  "status": {
+    "active": "نشط",
+    "archived": "مؤرشف",
+    "inactive": "غير نشط"
+  },
+  "edit": "تعديل",
+  "delete": "حذف",
+  "viewDetails": "عرض التفاصيل",
+  "actions": {
+    "editSuccess": "تعديل {{name}}",
+    "deleteSuccess": "تم حذف {{name}} بنجاح",
+    "createSuccess": "إنشاء لجنة جديدة"
+  },
+  "searchPlaceholder": "البحث في المجالس واللجان...",
+  "filtersLabel": "المرشحات",
+  "clearFilters": "مسح المرشحات",
+  "filters": {
+    "status": "الحالة",
+    "department": "القسم",
+    "type": "النوع",
+    "category": "الفئة",
+    "all": "الكل"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "title": "التصويت",
+  "createVote": "إنشاء تصويت",
+  "noVotes": "لا توجد أصوات",
+  "noVotesDescription": "لم يتم العثور على أصوات تطابق معايير البحث الخاصة بك.",
+  "status": {
+    "notStarted": "لم يبدأ",
+    "inProgress": "قيد التنفيذ",
+    "completed": "مكتمل"
+  },
+  "startDate": "تاريخ البدء",
+  "endDate": "تاريخ الانتهاء",
+  "votes": "أصوات",
+  "choices": "خيارات",
+  "castVote": "الإدلاء بالتصويت",
+  "edit": "تعديل",
+  "delete": "حذف",
+  "startVote": "بدء التصويت",
+  "endVote": "إنهاء التصويت",
+  "results": "النتائج",
+  "votersList": "قائمة الناخبين",
+  "showDetails": "إظهار التفاصيل",
+  "hideDetails": "إخفاء التفاصيل",
+  "actions": "الإجراءات",
+  "deleteSuccess": "تم حذف التصويت بنجاح",
+  "startSuccess": "تم بدء التصويت بنجاح",
+  "endSuccess": "تم إنهاء التصويت بنجاح",
+  "error": "حدث خطأ",
+  "deleteDialog": {
+    "title": "حذف التصويت",
+    "message": "هل أنت متأكد من أنك تريد حذف التصويت \"{{question}}\"؟ لا يمكن التراجع عن هذا الإجراء."
+  },
+  "filters": {
+    "searchPlaceholder": "البحث بالسؤال...",
+    "meeting": "الاجتماع",
+    "status": "الحالة",
+    "dateFrom": "من تاريخ",
+    "dateTo": "إلى تاريخ",
+    "allMeetings": "جميع الاجتماعات",
+    "allStatuses": "جميع الحالات",
+    "notStarted": "لم يبدأ",
+    "inProgress": "قيد التنفيذ",
+    "completed": "مكتمل",
+    "clearAll": "مسح جميع الفلاتر"
+  }
+}
+

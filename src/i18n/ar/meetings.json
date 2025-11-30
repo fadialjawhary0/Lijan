@@ -1,0 +1,70 @@
+{
+  "title": "الاجتماعات",
+  "createMeeting": "إنشاء اجتماع",
+  "createMeetingInfo": "سيتم تنفيذ وظيفة إنشاء الاجتماع قريباً",
+  "editMeetingInfo": "سيتم تنفيذ وظيفة تعديل الاجتماع قريباً",
+  "cancelMeetingInfo": "سيتم تنفيذ وظيفة إلغاء الاجتماع قريباً",
+  "meetingStarted": "تم بدء الاجتماع بنجاح",
+  "minutesPublished": "تم نشر المحضر بنجاح",
+  "exportInfo": "سيتم تنفيذ وظيفة التصدير قريباً",
+  "deleteSuccess": "تم حذف الاجتماع \"{{title}}\" بنجاح",
+  "view": "عرض",
+  "edit": "تعديل",
+  "delete": "حذف",
+  "cancel": "إلغاء",
+  "joinMeeting": "انضم إلى الاجتماع",
+  "startMeeting": "بدء الاجتماع",
+  "publishMinutes": "نشر المحضر",
+  "export": "تصدير",
+  "online": "عبر الإنترنت",
+  "onsite": "في الموقع",
+  "status": {
+    "upcoming": "قادم",
+    "inProgress": "قيد التنفيذ",
+    "completed": "مكتمل",
+    "cancelled": "ملغي",
+    "postponed": "مؤجل"
+  },
+  "type": {
+    "regular": "عادي",
+    "emergency": "طوارئ",
+    "virtual": "افتراضي",
+    "physical": "حضوري"
+  },
+  "table": {
+    "title": "العنوان",
+    "type": "النوع",
+    "dateTime": "التاريخ والوقت",
+    "location": "الموقع",
+    "status": "الحالة",
+    "metrics": "المقاييس",
+    "actions": "الإجراءات",
+    "organizer": "المنظم"
+  },
+  "filters": {
+    "searchPlaceholder": "البحث بالعنوان، بند جدول الأعمال، رقم القرار...",
+    "type": "النوع",
+    "status": "الحالة",
+    "location": "الموقع",
+    "organizer": "المنظم",
+    "dateFrom": "من تاريخ",
+    "dateTo": "إلى تاريخ",
+    "allTypes": "جميع الأنواع",
+    "allStatuses": "جميع الحالات",
+    "allLocations": "جميع المواقع",
+    "allOrganizers": "جميع المنظمين",
+    "clearAll": "مسح جميع الفلاتر"
+  },
+  "noMeetings": "لا توجد اجتماعات",
+  "noMeetingsDescription": "لم يتم العثور على اجتماعات تطابق معايير البحث الخاصة بك.",
+  "mom": {
+    "draft": "مسودة",
+    "published": "منشور"
+  },
+  "deleteDialog": {
+    "title": "حذف الاجتماع",
+    "message": "هل أنت متأكد من أنك تريد حذف الاجتماع \"{{title}}\"؟ لا يمكن التراجع عن هذا الإجراء."
+  },
+  "actions": "الإجراءات"
+}
+

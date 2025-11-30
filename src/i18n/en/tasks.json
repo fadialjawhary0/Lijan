@@ -1,0 +1,66 @@
+{
+  "title": "Tasks",
+  "createTask": "Create Task",
+  "createTaskInfo": "Create task functionality will be implemented soon",
+  "editTaskInfo": "Edit task functionality will be implemented soon",
+  "deleteSuccess": "Task \"{{title}}\" has been deleted successfully",
+  "markCompletedSuccess": "Task \"{{title}}\" has been marked as completed",
+  "edit": "Edit",
+  "delete": "Delete",
+  "markCompleted": "Mark Completed",
+  "status": {
+    "pending": "Pending",
+    "inProgress": "In Progress",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  },
+  "priority": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "urgent": "Urgent"
+  },
+  "createdFrom": {
+    "agendaItem": "Agenda Item",
+    "decision": "Decision",
+    "mom": "MoM",
+    "adHoc": "Ad-hoc"
+  },
+  "table": {
+    "title": "Title",
+    "assignedTo": "Assigned To",
+    "dueDate": "Due Date",
+    "status": "Status",
+    "priority": "Priority",
+    "source": "Source",
+    "meeting": "Meeting",
+    "agendaItem": "Agenda Item",
+    "actions": "Actions",
+    "fromMeeting": "From Meeting"
+  },
+  "filters": {
+    "searchPlaceholder": "Search by title, description, assigned to...",
+    "meeting": "Meeting",
+    "member": "Member",
+    "status": "Status",
+    "priority": "Priority",
+    "dueDateFrom": "Due Date From",
+    "dueDateTo": "Due Date To",
+    "allMeetings": "All Meetings",
+    "noMeeting": "No Meeting (Ad-hoc)",
+    "allMembers": "All Members",
+    "allStatuses": "All Statuses",
+    "allPriorities": "All Priorities",
+    "clearAll": "Clear All Filters"
+  },
+  "noTasks": "No Tasks",
+  "noTasksDescription": "No tasks found matching your criteria.",
+  "consultant": "Consultant",
+  "onlyAssigneeCanEdit": "Only assignee can edit",
+  "deleteDialog": {
+    "title": "Delete Task",
+    "message": "Are you sure you want to delete the task \"{{title}}\"? This action cannot be undone."
+  },
+  "actions": "Actions"
+}
+

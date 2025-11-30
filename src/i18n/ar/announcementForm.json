@@ -1,0 +1,37 @@
+{
+  "createTitle": "إنشاء إعلان",
+  "createSubtitle": "املأ التفاصيل لإنشاء إعلان جديد",
+  "editTitle": "تعديل الإعلان",
+  "editSubtitle": "تحديث معلومات الإعلان",
+  "loading": "جاري تحميل بيانات الإعلان...",
+  "sections": {
+    "basicInfo": "المعلومات الأساسية",
+    "association": "الارتباط",
+    "visibility": "الظهور"
+  },
+  "title": "العنوان",
+  "titlePlaceholder": "أدخل عنوان الإعلان",
+  "titleRequired": "العنوان مطلوب",
+  "description": "الوصف",
+  "descriptionPlaceholder": "أدخل وصف الإعلان",
+  "link": "الرابط",
+  "linkPlaceholder": "أدخل الرابط (مثال: https://example.com/article)",
+  "linkHelpText": "اختياري: أضف رابطاً للمقال الكامل أو المورد ذي الصلة",
+  "committee": "اللجنة",
+  "selectCommittee": "اختر اللجنة",
+  "council": "المجلس",
+  "selectCouncil": "اختر المجلس",
+  "noCouncil": "لا يوجد مجلس",
+  "isPublic": "جعل هذا الإعلان عاماً",
+  "isPublicHelpText": "الإعلانات العامة مرئية لجميع المستخدمين. الإعلانات الخاصة مرئية فقط لأعضاء اللجنة أو المجلس المرتبط.",
+  "create": "إنشاء",
+  "update": "تحديث",
+  "cancel": "إلغاء",
+  "createSuccess": "تم إنشاء الإعلان بنجاح",
+  "updateSuccess": "تم تحديث الإعلان بنجاح",
+  "error": "حدث خطأ",
+  "maxLength200": "الحد الأقصى للطول هو 200 حرف",
+  "maxLength2000": "الحد الأقصى للطول هو 2000 حرف",
+  "invalidUrl": "يرجى إدخال رابط صحيح (يبدأ بـ http:// أو https://)"
+}
+

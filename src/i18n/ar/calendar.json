@@ -1,0 +1,48 @@
+{
+  "title": "التقويم",
+  "close": "إغلاق",
+  "viewDetails": "عرض التفاصيل",
+  "buttons": {
+    "today": "اليوم",
+    "month": "شهر",
+    "week": "أسبوع",
+    "day": "يوم",
+    "list": "قائمة"
+  },
+  "eventTypes": {
+    "meeting": "اجتماع",
+    "task": "مهمة",
+    "vote": "تصويت",
+    "announcement": "إعلان",
+    "event": "حدث"
+  },
+  "eventDetails": {
+    "dateTime": "التاريخ والوقت",
+    "location": "الموقع",
+    "link": "رابط",
+    "assignedTo": "مكلف به",
+    "progress": "التقدم",
+    "choices": "الخيارات",
+    "choiceCount": "خيارات"
+  },
+  "filters": {
+    "title": "الفلاتر",
+    "eventTypes": "أنواع الأحداث",
+    "meetings": "الاجتماعات",
+    "tasks": "المهام",
+    "votes": "التصويتات",
+    "news": "الأخبار",
+    "member": "العضو",
+    "allMembers": "جميع الأعضاء"
+  },
+  "sync": {
+    "title": "المزامنة والتصدير",
+    "exportICS": "تصدير إلى ICS",
+    "googleCalendar": "المزامنة مع Google Calendar",
+    "outlook": "المزامنة مع Outlook",
+    "description": "قم بتصدير أحداث التقويم الخاصة بك إلى تطبيقات التقويم الخارجية",
+    "exportSuccess": "تم تصدير التقويم بنجاح",
+    "exportError": "خطأ في تصدير التقويم",
+    "googleCalendarInfo": "ستكون مزامنة Google Calendar متاحة قريباً"
+  }
+}

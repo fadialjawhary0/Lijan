@@ -1,0 +1,16 @@
+{
+  "sidebar": {
+    "overview": "النظرة العامة",
+    "members": "الأعضاء",
+    "meetings": "الاجتماعات",
+    "decisions": "القرارات",
+    "voting": "التصويت",
+    "tasks": "المهام",
+    "documents": "المستندات",
+    "news": "الأخبار",
+    "calendar": "التقويم",
+    "requests": "الطلبات",
+    "messages": "الرسائل",
+    "logout": "تسجيل الخروج"
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "title": "Home",
+  "subtitle": "Welcome to your committees dashboard",
+  "breadcrumbs": {
+    "home": "Home"
+  },
+  "kpis": {
+    "totalCommittees": "Total Committees",
+    "totalCommitteesDesc": "All committees",
+    "totalMeetings": "Total Meetings",
+    "totalMeetingsDesc": "All meetings",
+    "myTasksCount": "My Tasks",
+    "myTasksCountDesc": "Pending tasks",
+    "meetingsToday": "Meetings Today",
+    "meetingsTodayDesc": "Upcoming today"
+  },
+  "councils": "Councils",
+  "standaloneCommittees": "Standalone Committees",
+  "createCouncil": "Create Council",
+  "createCommittee": "Create Committee",
+  "myCommittees": "My Committees",
+  "committee": "Committee",
+  "committees": "Committees",
+  "noCommittees": "No Committees",
+  "noCommitteesDescription": "You are not a member of any committees yet.",
+  "noCouncils": "No Councils",
+  "noCouncilsDescription": "No councils found.",
+  "noStandaloneCommittees": "No Standalone Committees",
+  "noStandaloneCommitteesDescription": "All committees belong to councils.",
+  "committeesUnderCouncil": "Committees under this council",
+  "noCommitteesInCouncil": "This council has no committees.",
+  "formedOn": "Formed on",
+  "members": "members",
+  "committeeCreatedOn": "Committee created on",
+  "upcomingMeetings": "Upcoming meetings",
+  "completedMeetings": "Completed meetings",
+  "meetingInProgress": "Meeting in progress",
+  "noUpcomingMeeting": "No upcoming meeting",
+  "weeks": "weeks",
+  "days": "days",
+  "hours": "hours",
+  "minutes": "minutes",
+  "seconds": "seconds",
+  "status": {
+    "active": "Active",
+    "archived": "Archived",
+    "inactive": "Inactive"
+  },
+  "edit": "Edit",
+  "delete": "Delete",
+  "viewDetails": "View Details",
+  "actions": {
+    "editSuccess": "Editing {{name}}",
+    "deleteSuccess": "{{name}} has been deleted successfully",
+    "createSuccess": "Creating new committee"
+  },
+  "searchPlaceholder": "Search councils and committees...",
+  "filtersLabel": "Filters",
+  "clearFilters": "Clear Filters",
+  "filters": {
+    "status": "Status",
+    "department": "Department",
+    "type": "Type",
+    "category": "Category",
+    "all": "All"
+  }
+}

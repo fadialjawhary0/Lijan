@@ -1,0 +1,38 @@
+{
+  "title": "نظرة عامة",
+  "committeeInfo": "معلومات اللجنة",
+  "formationDate": "تاريخ إنشاء اللجنة",
+  "totalMembers": "إجمالي الأعضاء",
+  "totalMeetings": "إجمالي الاجتماعات",
+  "chairperson": "رئيس اللجنة",
+  "viceChairperson": "نائب رئيس اللجنة",
+  "status": {
+    "active": "نشط",
+    "archived": "مؤرشف",
+    "expired": "منتهي"
+  },
+  "kpis": {
+    "meetingsThisMonth": "اجتماعات هذا الشهر",
+    "decisionsPending": "قرارات معلقة",
+    "activeVotes": "تصويتات نشطة",
+    "tasksInProgress": "مهام قيد التنفيذ",
+    "tasksOverdue": "مهام متأخرة",
+    "nextMeetingCountdown": "الاجتماع القادم"
+  },
+  "upcomingMeeting": "الاجتماع القادم",
+  "noUpcomingMeeting": "لا توجد اجتماعات قادمة مجدولة",
+  "online": "عبر الإنترنت",
+  "onsite": "في الموقع",
+  "timeUntilMeeting": "الوقت حتى الاجتماع",
+  "meetingStartingSoon": "يبدأ قريباً",
+  "agenda": "جدول الأعمال",
+  "joinMeeting": "انضم إلى الاجتماع",
+  "viewDetails": "عرض التفاصيل",
+  "days": "أيام",
+  "hours": "ساعات",
+  "minutes": "دقائق",
+  "latestActivity": "أحدث الأنشطة",
+  "noActivities": "لا توجد أنشطة حديثة",
+  "quickActions": "إجراءات سريعة",
+  "noCommitteeSelected": "لم يتم اختيار لجنة. يرجى اختيار لجنة لعرض نظرة عامة عليها."
+}

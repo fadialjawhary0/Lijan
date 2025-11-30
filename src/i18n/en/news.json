@@ -1,0 +1,43 @@
+{
+  "title": "News & Announcements",
+  "createAnnouncement": "Create Announcement",
+  "createAnnouncementInfo": "Create announcement functionality will be implemented soon",
+  "filters": {
+    "searchPlaceholder": "Search announcements...",
+    "label": "Filters",
+    "committee": "Committee",
+    "council": "Council",
+    "visibility": "Visibility",
+    "all": "All",
+    "public": "Public",
+    "private": "Private",
+    "clearAll": "Clear All Filters"
+  },
+  "pagination": {
+    "showing": "Showing",
+    "of": "of",
+    "perPage": "per page"
+  },
+  "emptyState": {
+    "title": "No announcements found",
+    "description": "There are no announcements to display at the moment."
+  },
+  "details": {
+    "back": "Back to News",
+    "backToNews": "Back to News",
+    "visitLink": "Visit Link",
+    "public": "Public",
+    "private": "Private",
+    "noDescription": "No description available.",
+    "viewFullArticle": "View Full Article",
+    "information": "Information",
+    "committee": "Committee",
+    "council": "Council",
+    "createdBy": "Created By",
+    "actions": "Actions",
+    "edit": "Edit Announcement",
+    "openLink": "Open Link",
+    "notFound": "Announcement not found",
+    "notFoundDescription": "The announcement you are looking for does not exist or has been removed."
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "title": "المهام",
+  "createTask": "إنشاء مهمة",
+  "createTaskInfo": "سيتم تنفيذ وظيفة إنشاء المهمة قريباً",
+  "editTaskInfo": "سيتم تنفيذ وظيفة تعديل المهمة قريباً",
+  "deleteSuccess": "تم حذف المهمة \"{{title}}\" بنجاح",
+  "markCompletedSuccess": "تم تمييز المهمة \"{{title}}\" كمكتملة",
+  "edit": "تعديل",
+  "delete": "حذف",
+  "markCompleted": "تمييز كمكتمل",
+  "status": {
+    "pending": "قيد الانتظار",
+    "inProgress": "قيد التنفيذ",
+    "completed": "مكتمل",
+    "cancelled": "ملغي"
+  },
+  "priority": {
+    "low": "منخفض",
+    "medium": "متوسط",
+    "high": "عالي",
+    "urgent": "عاجل"
+  },
+  "createdFrom": {
+    "agendaItem": "بند جدول الأعمال",
+    "decision": "قرار",
+    "mom": "محضر",
+    "adHoc": "عشوائي"
+  },
+  "table": {
+    "title": "العنوان",
+    "assignedTo": "مكلف به",
+    "dueDate": "تاريخ الاستحقاق",
+    "status": "الحالة",
+    "priority": "الأولوية",
+    "source": "المصدر",
+    "meeting": "الاجتماع",
+    "agendaItem": "بند جدول الأعمال",
+    "actions": "الإجراءات",
+    "fromMeeting": "من الاجتماع"
+  },
+  "filters": {
+    "searchPlaceholder": "البحث بالعنوان، الوصف، المكلف به...",
+    "meeting": "الاجتماع",
+    "member": "العضو",
+    "status": "الحالة",
+    "priority": "الأولوية",
+    "dueDateFrom": "من تاريخ الاستحقاق",
+    "dueDateTo": "إلى تاريخ الاستحقاق",
+    "allMeetings": "جميع الاجتماعات",
+    "noMeeting": "لا يوجد اجتماع (عشوائي)",
+    "allMembers": "جميع الأعضاء",
+    "allStatuses": "جميع الحالات",
+    "allPriorities": "جميع الأولويات",
+    "clearAll": "مسح جميع الفلاتر"
+  },
+  "noTasks": "لا توجد مهام",
+  "noTasksDescription": "لم يتم العثور على مهام تطابق معايير البحث الخاصة بك.",
+  "consultant": "مستشار",
+  "onlyAssigneeCanEdit": "يمكن للمكلف فقط التعديل",
+  "deleteDialog": {
+    "title": "حذف المهمة",
+    "message": "هل أنت متأكد من أنك تريد حذف المهمة \"{{title}}\"؟ لا يمكن التراجع عن هذا الإجراء."
+  },
+  "actions": "الإجراءات"
+}
+

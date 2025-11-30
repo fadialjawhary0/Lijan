@@ -1,0 +1,32 @@
+{
+  "createTitle": "إنشاء تصويت",
+  "createSubtitle": "املأ التفاصيل لإنشاء تصويت جديد",
+  "editTitle": "تعديل التصويت",
+  "editSubtitle": "تحديث معلومات التصويت",
+  "loading": "جاري تحميل بيانات التصويت...",
+  "sections": {
+    "basicInfo": "المعلومات الأساسية",
+    "source": "المصدر",
+    "dates": "التواريخ",
+    "choices": "الخيارات"
+  },
+  "question": "السؤال",
+  "questionPlaceholder": "أدخل سؤال التصويت...",
+  "questionRequired": "السؤال مطلوب",
+  "meeting": "الاجتماع",
+  "noMeeting": "لا يوجد اجتماع (عشوائي)",
+  "agendaItem": "بند جدول الأعمال",
+  "selectAgendaItem": "اختر بند جدول الأعمال (اختياري)",
+  "startDate": "تاريخ البدء",
+  "endDate": "تاريخ الانتهاء",
+  "addChoice": "إضافة خيار",
+  "choicePlaceholder": "الخيار {{number}}",
+  "choiceRequired": "نص الخيار مطلوب",
+  "atLeastOneChoice": "يجب إضافة خيار واحد على الأقل",
+  "noCommitteeSelected": "يرجى اختيار اللجنة أولاً",
+  "maxLength500": "الحد الأقصى للطول هو 500 حرف",
+  "createSuccess": "تم إنشاء التصويت بنجاح",
+  "updateSuccess": "تم تحديث التصويت بنجاح",
+  "error": "حدث خطأ"
+}
+

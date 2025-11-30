@@ -1,0 +1,75 @@
+{
+  "title": "الأعضاء",
+  "member": "عضو",
+  "members": "أعضاء",
+  "addMemberButton": "إضافة عضو",
+  "edit": "تعديل",
+  "remove": "إزالة",
+  "changeRole": "تغيير الدور",
+  "changeRoleInfo": "سيتم تنفيذ وظيفة تغيير الدور قريباً",
+  "removeSuccess": "تم إزالة العضو {{name}} بنجاح",
+  "external": "خارجي",
+  "status": {
+    "active": "نشط",
+    "inactive": "غير نشط"
+  },
+  "table": {
+    "name": "الاسم",
+    "role": "الدور",
+    "organization": "المنظمة",
+    "status": "الحالة",
+    "startDate": "تاريخ البدء",
+    "actions": "الإجراءات"
+  },
+  "filters": {
+    "searchPlaceholder": "البحث بالاسم، البريد الإلكتروني، المنظمة...",
+    "role": "الدور",
+    "status": "الحالة",
+    "organization": "المنظمة",
+    "allRoles": "جميع الأدوار",
+    "allStatuses": "جميع الحالات",
+    "allOrganizations": "جميع المنظمات",
+    "clearAll": "مسح جميع الفلاتر"
+  },
+  "noMembers": "لا يوجد أعضاء",
+  "noMembersDescription": "لم يتم العثور على أعضاء يطابقون معايير البحث الخاصة بك.",
+  "addMember": {
+    "title": "إضافة عضو",
+    "externalMember": "عضو خارجي",
+    "selectUser": "اختر مستخدم",
+    "selectUserPlaceholder": "ابحث واختر مستخدماً...",
+    "name": "الاسم",
+    "namePlaceholder": "أدخل اسم العضو",
+    "nameRequired": "الاسم مطلوب",
+    "email": "البريد الإلكتروني",
+    "emailPlaceholder": "أدخل عنوان البريد الإلكتروني",
+    "emailRequired": "البريد الإلكتروني مطلوب",
+    "emailInvalid": "عنوان بريد إلكتروني غير صالح",
+    "company": "الشركة",
+    "companyPlaceholder": "أدخل اسم الشركة",
+    "title": "المسمى الوظيفي",
+    "titlePlaceholder": "أدخل المسمى الوظيفي",
+    "role": "الدور",
+    "selectRole": "اختر دوراً",
+    "roleRequired": "الدور مطلوب",
+    "startDate": "تاريخ البدء",
+    "endDate": "تاريخ الانتهاء",
+    "notes": "ملاحظات",
+    "notesPlaceholder": "أضف أي ملاحظات إضافية...",
+    "save": "حفظ",
+    "saving": "جاري الحفظ...",
+    "success": "تم إضافة العضو بنجاح",
+    "error": "فشل في إضافة العضو",
+    "memberIdError": "فشل في الحصول على معرف العضو",
+    "noCommitteeSelected": "لم يتم اختيار لجنة. يرجى اختيار لجنة أولاً.",
+    "externalNotSupported": "الأعضاء الخارجيون غير مدعومين بعد"
+  },
+  "noCommitteeSelected": "يرجى اختيار لجنة أولاً",
+  "deleteDialog": {
+    "title": "إزالة عضو",
+    "message": "هل أنت متأكد من أنك تريد إزالة {{name}} من هذه اللجنة؟ لا يمكن التراجع عن هذا الإجراء."
+  },
+  "cancel": "إلغاء",
+  "actions": "الإجراءات"
+}
+

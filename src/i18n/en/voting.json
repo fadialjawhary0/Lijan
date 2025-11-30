@@ -1,0 +1,47 @@
+{
+  "title": "Voting",
+  "createVote": "Create Vote",
+  "noVotes": "No Votes",
+  "noVotesDescription": "No votes found matching your criteria.",
+  "status": {
+    "notStarted": "Not Started",
+    "inProgress": "In Progress",
+    "completed": "Completed"
+  },
+  "startDate": "Start Date",
+  "endDate": "End Date",
+  "votes": "votes",
+  "choices": "choices",
+  "castVote": "Cast Vote",
+  "edit": "Edit",
+  "delete": "Delete",
+  "startVote": "Start Vote",
+  "endVote": "End Vote",
+  "results": "Results",
+  "votersList": "Voters List",
+  "showDetails": "Show Details",
+  "hideDetails": "Hide Details",
+  "actions": "Actions",
+  "deleteSuccess": "Vote deleted successfully",
+  "startSuccess": "Vote started successfully",
+  "endSuccess": "Vote ended successfully",
+  "error": "An error occurred",
+  "deleteDialog": {
+    "title": "Delete Vote",
+    "message": "Are you sure you want to delete the vote \"{{question}}\"? This action cannot be undone."
+  },
+  "filters": {
+    "searchPlaceholder": "Search by question...",
+    "meeting": "Meeting",
+    "status": "Status",
+    "dateFrom": "Date From",
+    "dateTo": "Date To",
+    "allMeetings": "All Meetings",
+    "allStatuses": "All Statuses",
+    "notStarted": "Not Started",
+    "inProgress": "In Progress",
+    "completed": "Completed",
+    "clearAll": "Clear All Filters"
+  }
+}
+
