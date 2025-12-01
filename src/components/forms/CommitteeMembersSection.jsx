@@ -2,12 +2,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, X, ChevronDown, ChevronUp, User, Shield } from 'lucide-react';
 import {
-  useGetAllSystemUsersQuery,
+  useGetAllUsersQuery,
   useGetAllRolesQuery,
   useGetAllPermissionsQuery,
   useGetAllRolePermissionsQuery,
   useGetMembersByCommitteeIdQuery,
-  useGetMemberPermissionsByMemberIdQuery,
 } from '../../queries';
 import { API } from '../../services/API';
 import UserAutocomplete from '../ui/UserAutocomplete';
@@ -27,42 +26,42 @@ const CommitteeMembersSection = ({ committeeId, onChange, isEditMode = false, di
   // State for members
   const [members, setMembers] = useState([]);
   const [expandedMember, setExpandedMember] = useState(null);
+  // State to store fetched role permissions per role
+  const [rolePermissionsByRole, setRolePermissionsByRole] = useState({});
 
-  // Fetch data - Use SystemUsers instead of Users since Member table references SystemUsers
-  const { data: systemUsersData, isLoading: isLoadingUsers } = useGetAllSystemUsersQuery({}, { enabled: !disabled });
-  const { data: rolesData } = useGetAllRolesQuery({}, { enabled: !disabled });
-  const { data: permissionsData } = useGetAllPermissionsQuery({}, { enabled: !disabled });
-
-  // Fetch ALL role permissions upfront
-  const { data: allRolePermissionsData } = useGetAllRolePermissionsQuery({}, { enabled: !disabled });
+  // Fetch data - Use Users from auth service with SystemId = 2 for committee product
+  const { data: usersData, isLoading: isLoadingUsers } = useGetAllUsersQuery({ Page: 1, PageSize: 1000, SystemId: 2 }, { enabled: !disabled });
+  const { data: rolesData } = useGetAllRolesQuery({ page: 1, pageSize: 1000 }, { enabled: !disabled });
+  const { data: permissionsData } = useGetAllPermissionsQuery({ page: 1, pageSize: 1000 }, { enabled: !disabled });
 
   // Fetch existing members if in edit mode
   const { data: existingMembersData } = useGetMembersByCommitteeIdQuery(committeeId, {
     enabled: !!committeeId && isEditMode && !disabled,
   });
 
-  // Map SystemUsers to match UserAutocomplete expected format (id, fullName, email)
-  const users = (systemUsersData?.data || []).map(su => ({
-    id: su.id,
-    fullName: su.userFullName || su.UserName || '',
-    email: su.email || '',
+  // Map Users to match UserAutocomplete expected format (id, fullName, email)
+  const users = (usersData?.data || []).map(user => ({
+    id: user.id || user.Id,
+    fullName: user.fullName || user.FullName || `${user.firstName || user.FirstName || ''} ${user.lastName || user.LastName || ''}`.trim(),
+    email: user.email || user.Email || '',
   }));
   const roles = rolesData?.data || [];
   const permissions = permissionsData?.data || [];
-  const allRolePermissions = allRolePermissionsData?.data || [];
 
-  // Organize role permissions by roleId
+  // Organize role permissions by roleId from fetched role permissions
   const rolePermissionsCache = useMemo(() => {
     const cache = {};
-    allRolePermissions.forEach(rp => {
-      const roleId = rp.roleId || rp.RoleId;
-      if (!cache[roleId]) {
-        cache[roleId] = [];
+
+    // Add permissions from role-specific fetches
+    Object.keys(rolePermissionsByRole).forEach(roleId => {
+      const rolePerms = rolePermissionsByRole[roleId];
+      if (rolePerms && Array.isArray(rolePerms)) {
+        cache[roleId] = rolePerms;
       }
-      cache[roleId].push(rp);
     });
+
     return cache;
-  }, [allRolePermissions]);
+  }, [rolePermissionsByRole]);
 
   // Load existing members on mount (edit mode)
   useEffect(() => {
@@ -82,74 +81,39 @@ const CommitteeMembersSection = ({ committeeId, onChange, isEditMode = false, di
     }
   }, [existingMembersData, isEditMode, members.length]);
 
-  // Role permissions are now cached from useGetAllRolePermissionsQuery
-
-  // Load member permissions for existing members (edit mode)
-  const memberIds = useMemo(() => {
-    return members.filter(m => m.id && !m.permissionsLoaded).map(m => m.id);
-  }, [members]);
-
-  // Fetch member permissions for first member
-  const firstMemberId = memberIds[0];
-  const { data: firstMemberPermissionsData } = useGetMemberPermissionsByMemberIdQuery(firstMemberId, {
-    enabled: !!firstMemberId && isEditMode && !disabled,
-  });
-
-  // Load member permissions into state
+  // Load MemberRolePermissions for existing members (edit mode)
   useEffect(() => {
-    if (firstMemberPermissionsData?.data && firstMemberId) {
-      const memberPerms = {};
-      firstMemberPermissionsData.data.forEach(mp => {
-        // Handle both camelCase and PascalCase property names
-        const isGranted = mp.isGranted ?? mp.IsGranted ?? false;
-        const permissionId = mp.permissionId ?? mp.PermissionId;
+    const loadMemberRolePermissions = async () => {
+      if (!isEditMode || members.length === 0) return;
 
-        if (isGranted && permissionId) {
-          memberPerms[permissionId] = true;
-        }
-      });
-      setMembers(prev =>
-        prev.map(m =>
-          m.id === firstMemberId
-            ? {
-                ...m,
-                permissions: memberPerms,
-                isCustomized: Object.keys(memberPerms).length > 0,
-                permissionsLoaded: true,
-              }
-            : m
-        )
-      );
-    }
-  }, [firstMemberPermissionsData, firstMemberId]);
-
-  // Fetch member permissions for other members on demand
-  useEffect(() => {
-    const fetchMemberPermissions = async () => {
-      for (const memberId of memberIds) {
-        if (memberId && memberId !== firstMemberId) {
+      for (const member of members) {
+        if (member.id && member.roleId && !member.permissionsLoaded) {
           try {
-            const response = await API.get('/committee-service/MemberPermission', {
-              params: { MemberId: memberId },
+            const response = await API.get('/committee-service/MemberRolePermission', {
+              params: { MemberId: member.id, RoleId: member.roleId, page: 1, pageSize: 1000 },
             });
-            if (response?.data?.data) {
-              const memberPerms = {};
-              response.data.data.forEach(mp => {
-                // Handle both camelCase and PascalCase property names
-                const isGranted = mp.isGranted ?? mp.IsGranted ?? false;
-                const permissionId = mp.permissionId ?? mp.PermissionId;
 
-                if (isGranted && permissionId) {
-                  memberPerms[permissionId] = true;
+            if (response?.data?.data || response?.data?.Data) {
+              const mrpData = response.data.data || response.data.Data;
+              const mrpArray = Array.isArray(mrpData) ? mrpData : [];
+
+              // Extract permission IDs from MemberRolePermissions
+              const memberPerms = {};
+              mrpArray.forEach(mrp => {
+                const permId = mrp.PermissionId || mrp.permissionId;
+                if (permId) {
+                  memberPerms[permId] = true;
                 }
               });
+
+              // Update member with loaded permissions
               setMembers(prev =>
                 prev.map(m =>
-                  m.id === memberId
+                  m.id === member.id
                     ? {
                         ...m,
                         permissions: memberPerms,
-                        isCustomized: Object.keys(memberPerms).length > 0,
+                        isCustomized: Object.keys(memberPerms).length > 0, // Has custom permissions
                         permissionsLoaded: true,
                       }
                     : m
@@ -157,16 +121,14 @@ const CommitteeMembersSection = ({ committeeId, onChange, isEditMode = false, di
               );
             }
           } catch (error) {
-            console.error(`Error fetching member permissions for member ${memberId}:`, error);
+            console.error(`Error loading MemberRolePermissions for member ${member.id}:`, error);
           }
         }
       }
     };
 
-    if (memberIds.length > 1) {
-      fetchMemberPermissions();
-    }
-  }, [memberIds, firstMemberId]);
+    loadMemberRolePermissions();
+  }, [members, isEditMode]);
 
   // Notify parent of changes
   useEffect(() => {
@@ -216,47 +178,135 @@ const CommitteeMembersSection = ({ committeeId, onChange, isEditMode = false, di
     );
   };
 
-  const handleRoleChange = (index, roleId) => {
+  const handleRoleChange = async (index, roleId) => {
+    // First, update the roleId immediately
     setMembers(
       members.map((m, i) =>
         i === index
           ? {
               ...m,
               roleId,
-              // Reset permissions to role defaults
-              permissions: {},
+              permissions: {}, // Clear permissions first
               isCustomized: false,
               permissionsLoaded: false,
             }
           : m
       )
     );
+
+    // Fetch role permissions for the selected role using LIST endpoint with RoleId parameter
+    if (roleId) {
+      try {
+        // Use the LIST endpoint with RoleId parameter
+        const response = await API.get('/committee-service/RolePermission', {
+          params: { RoleId: parseInt(roleId), page: 1, pageSize: 1000 },
+        });
+
+        console.log('Fetched role permissions for RoleId:', roleId, response?.data);
+
+        let defaultPermissions = {};
+
+        // Handle different response structures
+        const responseData = response?.data?.data || response?.data?.Data || response?.data;
+        const rolePermsArray = Array.isArray(responseData) ? responseData : [];
+
+        // The backend returns List<RolePermissionDto> where each has RoleId and Permissions array
+        // Extract all permission IDs from the Permissions arrays
+        rolePermsArray.forEach(rp => {
+          // Handle both camelCase and PascalCase
+          const permissions = rp.Permissions || rp.permissions || [];
+          if (Array.isArray(permissions)) {
+            permissions.forEach(perm => {
+              const permId = perm.Id || perm.id;
+              if (permId) {
+                // Store as both number and string to handle type mismatches
+                const permIdNum = Number(permId);
+                defaultPermissions[permIdNum] = true;
+                defaultPermissions[String(permIdNum)] = true;
+              }
+            });
+          }
+        });
+
+        console.log('Extracted default permissions for role:', roleId, defaultPermissions);
+
+        // Update the role-specific permissions cache
+        setRolePermissionsByRole(prev => ({
+          ...prev,
+          [roleId]: rolePermsArray,
+        }));
+
+        // Now update member with auto-checked default permissions
+        setMembers(prev =>
+          prev.map((m, i) =>
+            i === index
+              ? {
+                  ...m,
+                  roleId,
+                  // Set permissions to role defaults (auto-checked)
+                  permissions: defaultPermissions,
+                  isCustomized: false, // Not customized yet, using defaults
+                  permissionsLoaded: false,
+                }
+              : m
+          )
+        );
+      } catch (error) {
+        console.error('Error fetching role permissions for role:', roleId, error);
+      }
+    } else {
+      // If no role selected, clear permissions
+      setMembers(prev =>
+        prev.map((m, i) =>
+          i === index
+            ? {
+                ...m,
+                roleId: null,
+                permissions: {},
+                isCustomized: false,
+                permissionsLoaded: false,
+              }
+            : m
+        )
+      );
+    }
+
     // Expand to show permissions
     setExpandedMember(index);
   };
 
-  // Get default permissions for a role
+  // Get default permissions for a role from cache
   const getDefaultPermissionsForRole = roleId => {
     if (!roleId || !rolePermissionsCache[roleId]) return {};
-    const rolePermissions = rolePermissionsCache[roleId];
+    const rolePermsData = rolePermissionsCache[roleId];
     const defaultPerms = {};
-    rolePermissions.forEach(rp => {
-      // Handle both camelCase and PascalCase property names
-      const isGranted = rp.isGranted ?? rp.IsGranted ?? false;
-      const permissionId = rp.permissionId ?? rp.PermissionId;
 
-      if (isGranted && permissionId) {
-        defaultPerms[permissionId] = true;
-      }
-    });
+    // Handle array format from cache
+    if (Array.isArray(rolePermsData)) {
+      rolePermsData.forEach(rp => {
+        // Handle both camelCase and PascalCase
+        const permissions = rp.Permissions || rp.permissions || [];
+        if (Array.isArray(permissions)) {
+          permissions.forEach(perm => {
+            const permId = perm.Id || perm.id;
+            if (permId) {
+              defaultPerms[permId] = true;
+            }
+          });
+        }
+      });
+    }
+
     return defaultPerms;
   };
 
-  // Get effective permissions (custom or role default)
+  // Get effective permissions (always use member.permissions - either defaults or customized)
   const getEffectivePermissions = member => {
-    if (member.isCustomized && Object.keys(member.permissions).length > 0) {
+    // If member has permissions set, use them (could be defaults or customized)
+    if (member.permissions && Object.keys(member.permissions).length > 0) {
       return member.permissions;
     }
+    // Fallback to role defaults if no permissions set
     return getDefaultPermissionsForRole(member.roleId);
   };
 
@@ -265,29 +315,40 @@ const CommitteeMembersSection = ({ committeeId, onChange, isEditMode = false, di
       members.map((m, i) => {
         if (i !== memberIndex) return m;
 
-        const effectivePerms = getEffectivePermissions(m);
+        const currentPerms = m.permissions || {};
         const newPermissions = {
-          ...effectivePerms,
-          [permissionId]: !effectivePerms[permissionId],
+          ...currentPerms,
+          [permissionId]: !currentPerms[permissionId], // Toggle permission
         };
+
+        // Remove permission if unchecked (set to false/undefined)
+        if (!newPermissions[permissionId]) {
+          delete newPermissions[permissionId];
+        }
 
         return {
           ...m,
           permissions: newPermissions,
-          isCustomized: true,
+          isCustomized: true, // Mark as customized since user changed it
         };
       })
     );
   };
 
-  const handleResetPermissions = memberIndex => {
+  const handleResetPermissions = async memberIndex => {
+    const member = members[memberIndex];
+    if (!member || !member.roleId) return;
+
+    // Reset to role defaults
+    const defaultPerms = getDefaultPermissionsForRole(member.roleId);
+
     setMembers(
       members.map((m, i) =>
         i === memberIndex
           ? {
               ...m,
-              permissions: {},
-              isCustomized: false,
+              permissions: defaultPerms,
+              isCustomized: false, // Reset to defaults
             }
           : m
       )
@@ -324,8 +385,15 @@ const CommitteeMembersSection = ({ committeeId, onChange, isEditMode = false, di
           {members.map((member, index) => {
             const effectivePermissions = getEffectivePermissions(member);
             const isExpanded = expandedMember === index;
-            const selectedRole = roles.find(r => r.id === member.roleId);
-            const selectedUser = users.find(u => u.id === member.userId);
+            const selectedRole = roles.find(r => (r.id || r.Id) === member.roleId);
+            const selectedUser = users.find(u => (u.id || u.Id) === member.userId);
+
+            // Debug logging
+            if (member.roleId && index === 0) {
+              console.log('Member permissions:', member.permissions);
+              console.log('Effective permissions:', effectivePermissions);
+              console.log('Role ID:', member.roleId);
+            }
 
             return (
               <div key={index} className="border border-border rounded-lg p-4 bg-surface transition-all">
@@ -407,18 +475,25 @@ const CommitteeMembersSection = ({ committeeId, onChange, isEditMode = false, di
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto p-2">
                       {permissions.map(permission => {
-                        const isChecked = effectivePermissions[permission.id] || false;
+                        // Handle both number and string IDs
+                        const permId = permission.id || permission.Id;
+                        const isChecked =
+                          effectivePermissions[permId] === true ||
+                          effectivePermissions[String(permId)] === true ||
+                          effectivePermissions[Number(permId)] === true;
                         return (
-                          <label key={permission.id} className="flex items-start gap-2 p-2 rounded-lg hover:bg-surface-hover cursor-pointer">
+                          <label key={permId} className="flex items-start gap-2 p-2 rounded-lg hover:bg-surface-hover cursor-pointer">
                             <input
                               type="checkbox"
                               checked={isChecked}
-                              onChange={() => handlePermissionToggle(index, permission.id)}
+                              onChange={() => handlePermissionToggle(index, permId)}
                               disabled={disabled}
                               className="mt-1 w-4 h-4 text-brand bg-surface border-border rounded focus:ring-brand"
                             />
                             <div className="flex-1">
-                              <div className="text-sm font-medium text-text">{i18n.language === 'ar' ? permission.arabicName : permission.englishName}</div>
+                              <div className="text-sm font-medium text-text">
+                                {i18n.language === 'ar' ? permission.arabicName || permission.ArabicName : permission.englishName || permission.EnglishName}
+                              </div>
                               {permission.description && <div className="text-xs text-text-muted mt-1">{permission.description}</div>}
                             </div>
                           </label>

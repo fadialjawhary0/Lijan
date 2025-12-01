@@ -17,20 +17,6 @@ export const useGetAllRolePermissionsQuery = (filters = {}, options = {}) => {
   });
 };
 
-/**
- * Get role permissions by role ID
- * @param {number} roleId - The role ID
- * @param {Object} options - React Query options
- */
-export const useGetRolePermissionsByRoleIdQuery = (roleId, options = {}) => {
-  return useQuery({
-    queryKey: ['rolePermissions', 'byRole', roleId],
-    queryFn: () => API.get('/committee-service/RolePermission/by-role', { params: { RoleId: roleId } }),
-    enabled: !!roleId,
-    ...options,
-  });
-};
-
 // Get role permission by ID
 export const useGetRolePermissionByIdQuery = (id, options = {}) => {
   return useQuery({
@@ -40,4 +26,3 @@ export const useGetRolePermissionByIdQuery = (id, options = {}) => {
     ...options,
   });
 };
-

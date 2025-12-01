@@ -50,7 +50,8 @@ const CommitteeCard = ({ committee, onEdit, onDelete }) => {
   };
 
   const getStatusBadgeClasses = () => {
-    switch ('committee.status') {
+    const status = committee?.status || (committee?.isActive ? 'active' : 'archived');
+    switch (status) {
       case 'active':
         return 'bg-[var(--color-green-100)] text-[var(--color-green-500)]';
       case 'archived':
@@ -64,7 +65,8 @@ const CommitteeCard = ({ committee, onEdit, onDelete }) => {
   };
 
   const getStatusLabel = () => {
-    return committee?.status ? t(`status.${committee.status}`) : 'N/A';
+    const status = committee?.status || (committee?.isActive !== false ? 'active' : 'archived');
+    return t(`status.${status}`) || status;
   };
 
   return (

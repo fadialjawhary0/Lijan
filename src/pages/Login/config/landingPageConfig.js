@@ -2,16 +2,16 @@ export const landingPageConfig = {
   // Brand Configuration
   brand: {
     logo: null,
-    name: 'Strategy Management System',
-    tagline: 'Empowering Strategic Excellence',
+    name: 'Committee Management System',
+    tagline: 'Empowering Committee Management',
   },
 
   // Hero Section
   hero: {
     enabled: true,
-    title: 'Welcome to Strategic Excellence',
-    subtitle: "Transform your organization's strategy management with our comprehensive platform",
-    description: 'Streamline your strategic planning, track KPIs, manage initiatives, and drive organizational performance with cutting-edge technology.',
+    title: 'Welcome to Committee Management System',
+    subtitle: "Transform your organization's committee management with our comprehensive platform",
+    description: 'Streamline your committee planning, track KPIs, manage initiatives, and drive organizational performance with cutting-edge technology.',
     backgroundImages: null,
     ctaText: 'Sign In',
     showAnimation: true,

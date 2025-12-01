@@ -4,12 +4,24 @@ import { useTranslation } from 'react-i18next';
 import Button from '../../../components/ui/Button';
 import Card from '../../../components/ui/Card';
 import { useDebounce } from '../../../hooks/useDebounce';
+import { useGetAllDepartmentsQuery } from '../../../queries/departments';
+import { useGetAllCommitteeTypesQuery } from '../../../queries/committeeTypes';
+import { useGetAllCommitteeCategoriesQuery } from '../../../queries/committeeCategories';
 
 const HomeFilters = ({ searchTerm, onSearchChange, filters, onFilterChange, onClearFilters, showFilters = false, onToggleFilters }) => {
   const { t, i18n } = useTranslation('home');
   const isRTL = i18n.dir() === 'rtl';
   const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
   const debouncedSearchTerm = useDebounce(localSearchTerm, 300);
+
+  // Fetch filter options
+  const { data: departmentsData } = useGetAllDepartmentsQuery({ page: 1, pageSize: 100 });
+  const { data: typesData } = useGetAllCommitteeTypesQuery({ page: 1, pageSize: 100 });
+  const { data: categoriesData } = useGetAllCommitteeCategoriesQuery({ page: 1, pageSize: 100 });
+
+  const departments = departmentsData?.data || [];
+  const types = typesData?.data || [];
+  const categories = categoriesData?.data || [];
 
   useEffect(() => {
     if (debouncedSearchTerm !== searchTerm) {
@@ -87,7 +99,11 @@ const HomeFilters = ({ searchTerm, onSearchChange, filters, onFilterChange, onCl
                 className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-text focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="">{t('filters.all')}</option>
-                {/* TODO: Load departments from API */}
+                {departments.map(dept => (
+                  <option key={dept.id || dept.Id} value={dept.id || dept.Id}>
+                    {i18n.language === 'ar' ? dept.arabicName || dept.ArabicName : dept.englishName || dept.EnglishName}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -100,7 +116,11 @@ const HomeFilters = ({ searchTerm, onSearchChange, filters, onFilterChange, onCl
                 className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-text focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="">{t('filters.all')}</option>
-                {/* TODO: Load types from API */}
+                {types.map(type => (
+                  <option key={type.id || type.Id} value={type.id || type.Id}>
+                    {i18n.language === 'ar' ? type.arabicName || type.ArabicName : type.englishName || type.EnglishName}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -113,7 +133,11 @@ const HomeFilters = ({ searchTerm, onSearchChange, filters, onFilterChange, onCl
                 className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-text focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="">{t('filters.all')}</option>
-                {/* TODO: Load categories from API */}
+                {categories.map(category => (
+                  <option key={category.id || category.Id} value={category.id || category.Id}>
+                    {i18n.language === 'ar' ? category.arabicName || category.ArabicName : category.englishName || category.EnglishName}
+                  </option>
+                ))}
               </select>
             </div>
           </div>

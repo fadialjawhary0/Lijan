@@ -1,1 +1,1 @@
-export const IISPATH = '/strategy';
+export const IISPATH = '/committee';

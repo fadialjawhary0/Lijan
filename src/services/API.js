@@ -2,9 +2,9 @@ import axios from 'axios';
 import { IISPATH } from '../constants';
 
 const API = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  // baseURL: 'http://localhost:5000/api',
   // baseURL: 'http://dme-devepm1.emea.devoteam.com:5000/api',
-  // baseURL: 'https://dme-devepm1.devoteam.com/api',
+  baseURL: 'https://dme-devepm1.devoteam.com/api',
 
   timeout: 0,
   headers: {

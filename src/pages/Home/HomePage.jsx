@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Building2, Users } from 'lucide-react';
@@ -7,12 +7,13 @@ import KPISection from '../../features/Home/components/KPISection';
 import CouncilsSection from '../../features/Home/components/CouncilsSection';
 import StandaloneCommitteesSection from '../../features/Home/components/StandaloneCommitteesSection';
 import HomeFilters from '../../features/Home/components/HomeFilters';
-import { MOCK_KPIS } from '../../constants/committees.mock';
 import { useToast } from '../../context/ToasterContext';
 import Button from '../../components/ui/Button';
 import DeleteDialog from '../../components/ui/DeleteDialog';
 import { useGetAllCommitteesQuery, useDeleteCommitteeMutation } from '../../queries/committees';
 import { useGetAllCouncilsQuery, useDeleteCouncilMutation } from '../../queries/council';
+import { useGetAllMeetingsQuery } from '../../queries/meetings';
+import { useGetAllTasksQuery } from '../../queries/tasks';
 import { useAuth } from '../../context/AuthContext';
 import { isApiResponseSuccessful, getApiErrorMessage } from '../../utils/apiResponseHandler';
 
@@ -55,12 +56,10 @@ const HomePage = () => {
     UserId: userId || undefined,
   };
 
-  // Get all committees, then filter client-side for standalone ones
   const committeesQueryParams = {
     Page: committeesPage,
-    PageSize: committeesPageSize * 2, // Get more to account for filtering
+    PageSize: committeesPageSize * 2,
     SearchTerm: searchTerm || undefined,
-    // Don't filter by CouncilId - we'll filter client-side
     IsActive: filters.IsActive,
     DepartmentId: filters.DepartmentId,
     TypeId: filters.TypeId,
@@ -84,29 +83,198 @@ const HomePage = () => {
     enabled: !!userId,
   });
 
+  const { data: allMeetingsData } = useGetAllMeetingsQuery(
+    { Page: 1, PageSize: 1000 }, // Get a large number to calculate stats
+    { enabled: !!userId }
+  );
+
+  const { data: tasksData } = useGetAllTasksQuery({ Page: 1, PageSize: 1000 }, { enabled: !!userId });
+
   const deleteCommitteeMutation = useDeleteCommitteeMutation();
   const deleteCouncilMutation = useDeleteCouncilMutation();
 
   const councils = councilsData?.data || [];
   const allCommittees = committeesData?.data || [];
+  const allMeetings = isApiResponseSuccessful(allMeetingsData) ? allMeetingsData?.data?.Data || allMeetingsData?.data || [] : [];
+  const allTasks = isApiResponseSuccessful(tasksData) ? tasksData?.data?.Data || tasksData?.data || [] : [];
 
-  // Extract committee IDs that belong to councils
-  const councilCommitteeIds = new Set();
-  councils.forEach(council => {
-    const councilCommittees = council.Committees || council.committees || [];
-    councilCommittees.forEach(committee => {
-      councilCommitteeIds.add(committee.Id || committee.id);
+  const userTasks = useMemo(() => {
+    if (!userId || !allTasks.length) return [];
+    const userIdNum = parseInt(userId);
+    return allTasks.filter(task => {
+      const member = task.member || task.Member;
+      if (member) {
+        const memberUserId = member.userId || member.UserId;
+        return memberUserId === userIdNum;
+      }
+      const assignedTo = task.assignedTo || task.AssignedTo;
+      if (assignedTo) {
+        const assignedToUserId = assignedTo.userId || assignedTo.UserId;
+        return assignedToUserId === userIdNum;
+      }
+      return false;
     });
-  });
+  }, [allTasks, userId]);
 
-  // Filter standalone committees (those not in any council)
-  const standaloneCommittees = allCommittees.filter(
-    committee => !councilCommitteeIds.has(committee.Id || committee.id) && !(committee.CouncilId || committee.councilId)
-  );
+  const kpis = useMemo(() => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const meetingsToday = allMeetings.filter(meeting => {
+      const meetingDate = meeting.date || meeting.Date;
+      if (!meetingDate) return false;
+      const date = new Date(meetingDate);
+      date.setHours(0, 0, 0, 0);
+      return date >= today && date < tomorrow;
+    }).length;
+
+    const totalMeetings = allCommittees.reduce((sum, committee) => {
+      return sum + (committee.totalMeetings || committee.TotalMeetings || 0);
+    }, 0);
+
+    return {
+      totalCommittees: allCommittees.length,
+      totalMeetings,
+      myTasksCount: userTasks.length,
+      meetingsToday,
+    };
+  }, [allCommittees, allMeetings, userTasks]);
+
+  const enrichedCommittees = useMemo(() => {
+    const now = new Date();
+
+    const getMeetingDateTime = meeting => {
+      const date = meeting.date || meeting.Date;
+      if (!date) return null;
+
+      const meetingDate = new Date(date);
+      if (isNaN(meetingDate.getTime())) return null;
+
+      const startTime = meeting.startTime || meeting.StartTime;
+      if (startTime) {
+        let hours = 0;
+        let minutes = 0;
+
+        if (typeof startTime === 'string') {
+          const timeParts = startTime.split(':');
+          if (timeParts.length >= 2) {
+            hours = parseInt(timeParts[0], 10) || 0;
+            minutes = parseInt(timeParts[1], 10) || 0;
+          }
+        } else if (typeof startTime === 'object') {
+          hours = startTime.hours || 0;
+          minutes = startTime.minutes || 0;
+        }
+
+        meetingDate.setHours(hours, minutes, 0, 0);
+      } else {
+        meetingDate.setHours(0, 0, 0, 0);
+      }
+
+      return meetingDate;
+    };
+
+    return allCommittees.map(committee => {
+      const committeeId = committee.Id || committee.id;
+
+      const committeeMeetings = allMeetings.filter(meeting => {
+        const meetingCommitteeId = meeting.committeeId || meeting.CommitteeId;
+        return meetingCommitteeId === committeeId;
+      });
+
+      const upcomingMeetings = committeeMeetings.filter(meeting => {
+        const datetime = getMeetingDateTime(meeting);
+        return datetime && datetime > now;
+      }).length;
+
+      const completedMeetings = committeeMeetings.filter(meeting => {
+        const datetime = getMeetingDateTime(meeting);
+        return datetime && datetime < now;
+      }).length;
+
+      const upcomingMeetingsList = committeeMeetings
+        .map(meeting => ({
+          meeting,
+          datetime: getMeetingDateTime(meeting),
+        }))
+        .filter(({ datetime }) => datetime && datetime > now)
+        .sort((a, b) => a.datetime - b.datetime);
+
+      const nextMeeting = upcomingMeetingsList.length > 0 ? upcomingMeetingsList[0].meeting : null;
+
+      let formattedNextMeetingDate = null;
+      if (nextMeeting) {
+        const nextMeetingDateTime = getMeetingDateTime(nextMeeting);
+        if (nextMeetingDateTime) {
+          formattedNextMeetingDate = nextMeetingDateTime.toISOString();
+        }
+      }
+
+      return {
+        ...committee,
+        id: committee.Id || committee.id,
+        Id: committee.Id || committee.id,
+        englishName: committee.EnglishName || committee.englishName,
+        arabicName: committee.ArabicName || committee.arabicName,
+        memberCount: committee.TotalMembers || committee.totalMembers || 0,
+        upcomingMeetings,
+        completedMeetings,
+        nextMeetingDate: formattedNextMeetingDate,
+        status: committee.IsActive === true || committee.isActive === true ? 'active' : 'archived',
+        formationDate: committee.FormationDate || committee.formationDate,
+        // Preserve CouncilId for grouping
+        CouncilId: committee.CouncilId || committee.councilId,
+        councilId: committee.CouncilId || committee.councilId,
+      };
+    });
+  }, [allCommittees, allMeetings]);
+
+  const committeesByCouncilId = useMemo(() => {
+    const grouped = new Map();
+    enrichedCommittees.forEach(committee => {
+      const councilId = committee.CouncilId || committee.councilId;
+      if (councilId) {
+        if (!grouped.has(councilId)) {
+          grouped.set(councilId, []);
+        }
+        grouped.get(councilId).push(committee);
+      }
+    });
+    return grouped;
+  }, [enrichedCommittees]);
+
+  const councilsWithCommittees = useMemo(() => {
+    return councils.map(council => {
+      const councilId = council.Id || council.id;
+      const committeesFromApi = committeesByCouncilId.get(councilId) || [];
+
+      return {
+        ...council,
+        Committees: committeesFromApi,
+        committees: committeesFromApi,
+      };
+    });
+  }, [councils, committeesByCouncilId]);
+
+  const councilCommitteeIds = useMemo(() => {
+    const ids = new Set();
+    enrichedCommittees.forEach(committee => {
+      const councilId = committee.CouncilId || committee.councilId;
+      if (councilId) {
+        ids.add(committee.id);
+      }
+    });
+    return ids;
+  }, [enrichedCommittees]);
+
+  const enrichedStandaloneCommittees = useMemo(() => {
+    return enrichedCommittees.filter(committee => !councilCommitteeIds.has(committee.id) && !(committee.CouncilId || committee.councilId));
+  }, [enrichedCommittees, councilCommitteeIds]);
 
   const councilsTotalCount = councilsData?.totalCount || 0;
-  // Estimate total standalone committees (this is approximate since we're filtering client-side)
-  const committeesTotalCount = standaloneCommittees.length;
+  const committeesTotalCount = enrichedStandaloneCommittees.length;
   const councilsTotalPages = councilsData?.totalPages || 1;
   const committeesTotalPages = Math.ceil(committeesTotalCount / committeesPageSize) || 1;
 
@@ -182,7 +350,7 @@ const HomePage = () => {
               setItemToDelete(null);
               setDeleteType(null);
               refetchCommittees();
-              refetchCouncils(); // Refresh councils too in case committee count changed
+              refetchCouncils();
             } else {
               const errorMessage = getApiErrorMessage(response, tCommon('error') || 'An error occurred');
               toast.error(errorMessage);
@@ -241,7 +409,7 @@ const HomePage = () => {
       </div>
 
       {/* KPIs */}
-      <KPISection kpis={MOCK_KPIS} />
+      <KPISection kpis={kpis} />
 
       {/* Filters */}
       <HomeFilters
@@ -253,35 +421,6 @@ const HomePage = () => {
         showFilters={showFilters}
         onToggleFilters={() => setShowFilters(!showFilters)}
       />
-
-      {/* Councils Section */}
-      <section>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <Building2 className="h-6 w-6 text-primary" />
-            <h2 className="text-xl font-semibold text-text">
-              {t('councils')} ({councilsTotalCount})
-            </h2>
-          </div>
-          <Button variant="primary" onClick={handleCreateCouncil}>
-            <Plus className="h-4 w-4" />
-            {t('createCouncil')}
-          </Button>
-        </div>
-        <CouncilsSection
-          councils={councils}
-          isLoading={councilsLoading}
-          onEdit={handleEditCouncil}
-          onDelete={handleDeleteCouncil}
-          onCommitteeEdit={handleEditCommittee}
-          onCommitteeDelete={handleDeleteCommittee}
-          pagination={{
-            currentPage: councilsPage,
-            totalPages: councilsTotalPages,
-          }}
-          onPageChange={setCouncilsPage}
-        />
-      </section>
 
       {/* Standalone Committees Section */}
       <section>
@@ -298,7 +437,7 @@ const HomePage = () => {
           </Button>
         </div>
         <StandaloneCommitteesSection
-          committees={standaloneCommittees}
+          committees={enrichedStandaloneCommittees}
           isLoading={committeesLoading}
           onEdit={handleEditCommittee}
           onDelete={handleDeleteCommittee}
@@ -310,6 +449,34 @@ const HomePage = () => {
         />
       </section>
 
+      {/* Councils Section */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Building2 className="h-6 w-6 text-primary" />
+            <h2 className="text-xl font-semibold text-text">
+              {t('councils')} ({councilsTotalCount})
+            </h2>
+          </div>
+          <Button variant="primary" onClick={handleCreateCouncil}>
+            <Plus className="h-4 w-4" />
+            {t('createCouncil')}
+          </Button>
+        </div>
+        <CouncilsSection
+          councils={councilsWithCommittees}
+          isLoading={councilsLoading}
+          onEdit={handleEditCouncil}
+          onDelete={handleDeleteCouncil}
+          onCommitteeEdit={handleEditCommittee}
+          onCommitteeDelete={handleDeleteCommittee}
+          pagination={{
+            currentPage: councilsPage,
+            totalPages: councilsTotalPages,
+          }}
+          onPageChange={setCouncilsPage}
+        />
+      </section>
       {/* Delete Dialog */}
       <DeleteDialog
         isOpen={deleteDialogOpen}

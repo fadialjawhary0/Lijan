@@ -19,30 +19,28 @@ const QuickActions = ({ actions }) => {
     Target: CheckSquare,
   };
 
-  if (!actions || actions.length === 0) {
-    return null;
-  }
+  if (!actions || actions?.length === 0) return null;
 
   return (
     <Card className="p-6">
       <h3 className="text-lg font-semibold text-text mb-4">{t('quickActions')}</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {actions.map(action => {
-          const Icon = iconMap[action.icon] || FileText;
+        {actions?.map(action => {
+          const Icon = iconMap[action?.icon] || FileText;
 
           return (
             <Button
-              key={action.id}
+              key={action?.id}
               variant="ghost"
               className="justify-start h-auto py-3 px-4 cursor-pointer"
-              onClick={() => action.route && navigate(action.route)}
-              permission={action.permission}
+              onClick={() => action?.route && navigate(action?.route)}
+              permission={action?.permission}
             >
-              <div className={`flex items-center gap-3 ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
-                <div className="p-2 rounded-lg bg-surface-elevated">
-                  <Icon className="h-5 w-5 text-brand" />
+              <div className={`flex items-center`}>
+                <div className={`shrink-0 p-2 rounded-lg bg-surface-elevated ${isRTL ? 'ml-2' : 'mr-2'}`}>
+                  <Icon className="h-4 w-4 text-brand" />
                 </div>
-                <span className="text-sm font-medium text-text">{isRTL ? action.arabicLabel : action.label}</span>
+                <span className="text-sm font-medium text-text">{isRTL ? action?.arabicLabel : action?.label}</span>
               </div>
             </Button>
           );

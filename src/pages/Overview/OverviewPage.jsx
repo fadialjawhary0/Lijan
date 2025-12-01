@@ -3,13 +3,14 @@ import { useTranslation } from 'react-i18next';
 import { useBreadcrumbs } from '../../context';
 import { useCommittee } from '../../context/CommitteeContext';
 import { useGetCommitteeByIdQuery } from '../../queries/committees';
+import { useGetAllMeetingsQuery } from '../../queries/meetings';
 import { isApiResponseSuccessful } from '../../utils/apiResponseHandler';
 import CommitteeInfoSection from '../../features/Overview/components/CommitteeInfoSection';
 import OverviewKPISection from '../../features/Overview/components/OverviewKPISection';
 import UpcomingMeetingWidget from '../../features/Overview/components/UpcomingMeetingWidget';
 import ActivityTimeline from '../../features/Overview/components/ActivityTimeline';
 import QuickActions from '../../features/Overview/components/QuickActions';
-import { MOCK_UPCOMING_MEETING, MOCK_ACTIVITIES, MOCK_QUICK_ACTIONS } from '../../features/Overview/constants/overview.const';
+import { MOCK_ACTIVITIES } from '../../features/Overview/constants/overview.const';
 import TableSkeleton from '../../components/skeletons/TableSkeleton';
 
 const calculateNextMeetingCountdown = (nextMeetingDate, nextMeetingStartTime, t) => {
@@ -18,20 +19,18 @@ const calculateNextMeetingCountdown = (nextMeetingDate, nextMeetingStartTime, t)
   try {
     const now = new Date();
     const meetingDate = new Date(nextMeetingDate);
-    
-    // If start time is provided, combine it with the date
+
     if (nextMeetingStartTime) {
       const timeParts = nextMeetingStartTime.split(':');
       if (timeParts.length >= 2) {
         meetingDate.setHours(parseInt(timeParts[0], 10), parseInt(timeParts[1], 10), 0, 0);
       }
     } else {
-      // Default to start of day if no time provided
       meetingDate.setHours(0, 0, 0, 0);
     }
 
     const diffMs = meetingDate - now;
-    
+
     if (diffMs <= 0) return '-';
 
     const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
@@ -56,8 +55,17 @@ const OverviewPage = () => {
   const { setBreadcrumbs } = useBreadcrumbs();
   const { selectedCommitteeId } = useCommittee();
 
-  const { data: committeeResponse, isLoading: isLoadingCommittee } = useGetCommitteeByIdQuery(
-    selectedCommitteeId ? parseInt(selectedCommitteeId) : null,
+  const { data: committeeResponse, isLoading: isLoadingCommittee } = useGetCommitteeByIdQuery(selectedCommitteeId ? parseInt(selectedCommitteeId) : null, {
+    enabled: !!selectedCommitteeId,
+  });
+
+  // Fetch upcoming meetings for the selected committee
+  const { data: meetingsResponse, isLoading: isLoadingMeetings } = useGetAllMeetingsQuery(
+    {
+      CommitteeId: selectedCommitteeId ? parseInt(selectedCommitteeId) : null,
+      Page: 1,
+      PageSize: 100,
+    },
     { enabled: !!selectedCommitteeId }
   );
 
@@ -100,11 +108,111 @@ const OverviewPage = () => {
     };
   }, [committeeData, t]);
 
-  const upcomingMeeting = MOCK_UPCOMING_MEETING;
-  const activities = MOCK_ACTIVITIES;
-  const quickActions = MOCK_QUICK_ACTIONS;
+  // Get the next upcoming meeting from the meetings list
+  const upcomingMeeting = useMemo(() => {
+    if (!isApiResponseSuccessful(meetingsResponse)) return null;
 
-  if (isLoadingCommittee) {
+    // Handle different response structures
+    const meetingsData = meetingsResponse?.data?.Data || meetingsResponse?.data || [];
+    const meetings = Array.isArray(meetingsData) ? meetingsData : [];
+
+    if (meetings.length === 0) return null;
+
+    const now = new Date();
+
+    // Helper function to get meeting datetime
+    const getMeetingDateTime = meeting => {
+      const date = meeting.date || meeting.Date;
+      if (!date) return null;
+
+      const meetingDate = new Date(date);
+      if (isNaN(meetingDate.getTime())) return null;
+
+      const startTime = meeting.startTime || meeting.StartTime;
+      if (startTime) {
+        let hours = 0;
+        let minutes = 0;
+
+        if (typeof startTime === 'string') {
+          // Handle TimeSpan format "HH:MM:SS" or "HH:MM"
+          const timeParts = startTime.split(':');
+          if (timeParts.length >= 2) {
+            hours = parseInt(timeParts[0], 10) || 0;
+            minutes = parseInt(timeParts[1], 10) || 0;
+          }
+        } else if (typeof startTime === 'object') {
+          // Handle object format { hours, minutes }
+          hours = startTime.hours || 0;
+          minutes = startTime.minutes || 0;
+        }
+
+        meetingDate.setHours(hours, minutes, 0, 0);
+      } else {
+        // If no time, set to start of day
+        meetingDate.setHours(0, 0, 0, 0);
+      }
+
+      return meetingDate;
+    };
+
+    // Filter and find the next upcoming meeting
+    const upcomingMeetings = meetings
+      .map(meeting => ({
+        meeting,
+        datetime: getMeetingDateTime(meeting),
+      }))
+      .filter(({ datetime }) => datetime && datetime > now)
+      .sort((a, b) => a.datetime - b.datetime);
+
+    // Return the first (earliest) upcoming meeting
+    return upcomingMeetings.length > 0 ? upcomingMeetings[0].meeting : null;
+  }, [meetingsResponse]);
+
+  const activities = MOCK_ACTIVITIES;
+
+  // Quick actions with correct routes
+  const quickActions = useMemo(
+    () => [
+      {
+        id: 1,
+        label: 'Create Meeting',
+        arabicLabel: 'إنشاء اجتماع',
+        icon: 'Calendar',
+        route: '/meetings/create',
+      },
+      {
+        id: 2,
+        label: 'Add Member',
+        arabicLabel: 'إضافة عضو',
+        icon: 'UserPlus',
+        route: '/members',
+      },
+      {
+        id: 3,
+        label: 'Create Task',
+        arabicLabel: 'إنشاء مهمة',
+        icon: 'CheckSquare',
+        route: '/tasks/create',
+      },
+      {
+        id: 4,
+        label: 'Create Vote',
+        arabicLabel: 'إنشاء تصويت',
+        icon: 'FileCheck',
+        route: '/voting/create',
+      },
+      {
+        id: 5,
+        label: 'View Decisions',
+        arabicLabel: 'عرض القرارات',
+        icon: 'FileText',
+        route: '/decisions',
+      },
+    ],
+    []
+  );
+
+  if (isLoadingCommittee || isLoadingMeetings) {
     return (
       <div className="space-y-6">
         <TableSkeleton rows={3} />

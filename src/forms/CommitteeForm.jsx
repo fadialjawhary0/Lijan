@@ -11,8 +11,6 @@ import {
   useGetAllCommitteeCategoriesQuery,
   useGetAllCommitteeTypesQuery,
   useAddMembersToCommitteeMutation,
-  useCreateMemberPermissionMutation,
-  useUpdateMemberPermissionMutation,
 } from '../queries/index';
 import { useToast } from '../context/ToasterContext';
 import { useBreadcrumbs } from '../context';
@@ -76,8 +74,6 @@ const CommitteeForm = ({ initialData = null, onSuccess, onClose }) => {
   const createMutation = useCreateCommitteeMutation();
   const updateMutation = useUpdateCommitteeMutation();
   const addMembersMutation = useAddMembersToCommitteeMutation();
-  const createMemberPermissionMutation = useCreateMemberPermissionMutation();
-  const updateMemberPermissionMutation = useUpdateMemberPermissionMutation();
 
   const startDate = watch('StartDate');
   const endDate = watch('EndDate');
@@ -215,153 +211,194 @@ const CommitteeForm = ({ initialData = null, onSuccess, onClose }) => {
     // Filter members with userId and roleId
     const validMembers = members.filter(m => m.userId && m.roleId);
 
-    console.log('Valid members to add:', validMembers);
+    console.log('Valid members to process:', validMembers);
     console.log('Committee ID:', committeeId);
+    console.log('Is Edit Mode:', isEditMode);
 
     if (validMembers.length === 0) {
-      console.log('No valid members to add');
+      console.log('No valid members to process');
       return;
     }
 
-    // Prepare members for API
-    const membersToAdd = validMembers.map(m => ({
-      CommitteeId: committeeId,
-      UserId: m.userId,
-      RoleId: m.roleId,
-    }));
+    const { API } = await import('../services/API');
 
-    console.log('Calling API to add members:', membersToAdd);
+    // Separate new members (no id) from existing members (has id)
+    const newMembers = validMembers.filter(m => !m.id);
+    const existingMembers = validMembers.filter(m => m.id);
 
-    // Add members to committee
-    try {
-      const addMembersResponse = await new Promise((resolve, reject) => {
-        addMembersMutation.mutate(
-          { Members: membersToAdd },
-          {
-            onSuccess: response => {
-              console.log('Add members response:', response);
-              if (isApiResponseSuccessful(response)) {
-                resolve(response);
-              } else {
-                reject(new Error(getApiErrorMessage(response, 'Failed to add members')));
-              }
-            },
-            onError: error => {
-              console.error('Add members error:', error);
-              reject(error);
-            },
-          }
-        );
-      });
+    // Add new members to committee if any
+    if (newMembers.length > 0) {
+      const membersToAdd = newMembers.map(m => ({
+        CommitteeId: committeeId,
+        UserId: m.userId,
+        RoleId: m.roleId,
+      }));
 
-      console.log('Members added successfully:', addMembersResponse);
+      console.log('Calling API to add new members:', membersToAdd);
 
-      // Wait a bit for the database to save
-      await new Promise(resolve => setTimeout(resolve, 300));
-
-      // Fetch the created members to get their IDs
-      const { API } = await import('../services/API');
-      const membersResponse = await API.get('/committee-service/Member/by-committee', {
-        params: { CommitteeId: parseInt(committeeId) },
-      });
-
-      console.log('Fetched members:', membersResponse);
-
-      if (!membersResponse?.data || membersResponse.data.length === 0) {
-        console.warn('No members found after creation');
-        return;
-      }
-
-      const createdMembers = Array.isArray(membersResponse.data) ? membersResponse.data : membersResponse.data.data || [];
-
-      // Fetch all permissions and role permissions for saving member permissions
-      const [permissionsResponse, rolePermissionsResponse] = await Promise.all([
-        API.get('/committee-service/Permission'),
-        API.get('/committee-service/RolePermission'),
-      ]);
-
-      const allPermissions = permissionsResponse?.data || permissionsResponse?.data?.data || [];
-      const allRolePermissions = rolePermissionsResponse?.data || rolePermissionsResponse?.data?.data || [];
-
-      // Organize role permissions by roleId
-      const rolePermissionsCache = {};
-      allRolePermissions.forEach(rp => {
-        const roleId = rp.roleId || rp.RoleId;
-        if (!rolePermissionsCache[roleId]) {
-          rolePermissionsCache[roleId] = [];
-        }
-        rolePermissionsCache[roleId].push(rp);
-      });
-
-      // Match created members with our validMembers by UserId and save permissions
-      for (let i = 0; i < validMembers.length; i++) {
-        const memberData = validMembers[i];
-        const createdMember = createdMembers.find(
-          cm => (cm.userId || cm.UserId) === memberData.userId || (cm.userId || cm.UserId) === parseInt(memberData.userId)
-        );
-
-        if (!createdMember) {
-          console.warn(`Member with UserId ${memberData.userId} not found in created members`);
-          continue;
-        }
-
-        const memberId = createdMember.id || createdMember.Id;
-        console.log(`Processing permissions for member ${memberId} (UserId: ${memberData.userId})`);
-
-        // Get role permissions for this member's role
-        const rolePermissions = rolePermissionsCache[memberData.roleId] || [];
-
-        // Determine which permissions to save
-        let permissionsToSave = {};
-
-        if (memberData.isCustomized && Object.keys(memberData.permissions).length > 0) {
-          // Use custom permissions
-          permissionsToSave = memberData.permissions;
-        } else {
-          // Use role default permissions - save ALL permissions to MemberPermissions table
-          allPermissions.forEach(perm => {
-            const permId = perm.id || perm.Id;
-            const rolePerm = rolePermissions.find(rp => (rp.permissionId || rp.PermissionId) === permId);
-            permissionsToSave[permId] = rolePerm ? rolePerm.isGranted ?? rolePerm.IsGranted ?? false : false;
-          });
-        }
-
-        // Save each permission to MemberPermissions table
-        for (const [permissionId, isGranted] of Object.entries(permissionsToSave)) {
-          try {
-            await new Promise((resolve, reject) => {
-              createMemberPermissionMutation.mutate(
-                {
-                  MemberId: memberId,
-                  PermissionId: parseInt(permissionId),
-                  IsGranted: Boolean(isGranted),
-                },
-                {
-                  onSuccess: response => {
-                    if (isApiResponseSuccessful(response)) {
-                      resolve(response);
-                    } else {
-                      reject(new Error(getApiErrorMessage(response, 'Failed to save permission')));
-                    }
-                  },
-                  onError: error => {
-                    reject(error);
-                  },
+      try {
+        const addMembersResponse = await new Promise((resolve, reject) => {
+          addMembersMutation.mutate(
+            { Members: membersToAdd },
+            {
+              onSuccess: response => {
+                console.log('Add members response:', response);
+                if (isApiResponseSuccessful(response)) {
+                  resolve(response);
+                } else {
+                  reject(new Error(getApiErrorMessage(response, 'Failed to add members')));
                 }
-              );
-            });
-          } catch (error) {
-            console.error(`Failed to save permission ${permissionId} for member ${memberId}:`, error);
-            // Continue with other permissions even if one fails
-          }
-        }
+              },
+              onError: error => {
+                console.error('Add members error:', error);
+                reject(error);
+              },
+            }
+          );
+        });
+
+        console.log('Members added successfully:', addMembersResponse);
+
+        // Wait a bit for the database to save
+        await new Promise(resolve => setTimeout(resolve, 300));
+      } catch (error) {
+        console.error('Error adding members:', error);
+        throw error;
+      }
+    }
+
+    // Fetch all members for this committee to get IDs for new members
+    // Use the main Member endpoint with CommitteeId filter
+    const membersResponse = await API.get('/committee-service/Member', {
+      params: { CommitteeId: parseInt(committeeId), page: 1, pageSize: 1000 },
+    });
+
+    console.log('Fetched members response:', membersResponse);
+
+    // API interceptor returns response.data directly
+    const allMembers = membersResponse?.data || [];
+
+    if (allMembers.length === 0) {
+      console.warn('No members found for committee', committeeId);
+      return;
+    }
+
+    console.log('Found members:', allMembers);
+
+    // Process all members (both new and existing) to save/update MemberRolePermissions
+    for (const memberData of validMembers) {
+      // Find member by ID (existing) or UserId (new)
+      const dbMember = memberData.id
+        ? allMembers.find(m => (m.id || m.Id) === memberData.id)
+        : allMembers.find(m => (m.userId || m.UserId) === memberData.userId || (m.userId || m.UserId) === parseInt(memberData.userId));
+
+      if (!dbMember) {
+        console.warn(`Member not found in database:`, memberData);
+        continue;
       }
 
-      console.log('All member permissions saved successfully');
-    } catch (error) {
-      console.error('Error in handleMembersAndPermissions:', error);
-      throw error;
+      const memberId = dbMember.id || dbMember.Id;
+      console.log(`Processing MemberRolePermissions for member ${memberId} (UserId: ${memberData.userId}, RoleId: ${memberData.roleId})`);
+      console.log(`Member permissions object:`, memberData.permissions);
+
+      // Convert permissions object to array of permission IDs (only checked permissions)
+      // Handle both string and number keys
+      const permissionIds = [];
+      const perms = memberData.permissions || {};
+
+      Object.keys(perms).forEach(key => {
+        const value = perms[key];
+        if (value === true) {
+          const permId = parseInt(key);
+          if (!isNaN(permId)) {
+            permissionIds.push(permId);
+          }
+        }
+      });
+
+      console.log(`Extracted permission IDs:`, permissionIds);
+
+      if (permissionIds.length === 0) {
+        console.warn(`No permissions to save for member ${memberId}. Permissions object:`, memberData.permissions);
+        continue;
+      }
+
+      if (memberData.id) {
+        // Existing member - use UpdateMemberRolePermissionCommand
+        try {
+          // Fetch existing MemberRolePermissions for this member and role
+          const existingMRPResponse = await API.get('/committee-service/MemberRolePermission', {
+            params: { MemberId: memberId, RoleId: memberData.roleId, page: 1, pageSize: 1000 },
+          });
+
+          const existingMRPs = existingMRPResponse?.data?.data || existingMRPResponse?.data?.Data || [];
+          const existingPermissionIds = existingMRPs.map(mrp => mrp.PermissionId || mrp.permissionId).filter(Boolean);
+
+          // Calculate added and deleted permissions
+          const added = permissionIds.filter(id => !existingPermissionIds.includes(id));
+          const deleted = existingPermissionIds.filter(id => !permissionIds.includes(id));
+
+          if (added.length > 0 || deleted.length > 0) {
+            const updateResponse = await API.patch('/committee-service/MemberRolePermission/update', {
+              MemberId: memberId,
+              RoleId: memberData.roleId,
+              Added: added.length > 0 ? added : null,
+              Deleted: deleted.length > 0 ? deleted : null,
+            });
+
+            if (!isApiResponseSuccessful(updateResponse)) {
+              console.error(
+                `Failed to update MemberRolePermissions for member ${memberId}:`,
+                getApiErrorMessage(updateResponse, 'Failed to update permissions')
+              );
+            } else {
+              console.log(`Successfully updated MemberRolePermissions for member ${memberId}`);
+            }
+          } else {
+            console.log(`No changes to MemberRolePermissions for member ${memberId}`);
+          }
+        } catch (error) {
+          console.error(`Error updating MemberRolePermissions for member ${memberId}:`, error);
+        }
+      } else {
+        // New member - use CreateMemberRolePermissionCommand
+        try {
+          const payload = {
+            MemberId: memberId,
+            RoleId: memberData.roleId,
+            PermissionsIds: permissionIds,
+          };
+
+          console.log(`Creating MemberRolePermissions with payload:`, payload);
+
+          const createResponse = await API.post('/committee-service/MemberRolePermission/create', payload);
+
+          console.log(`Create MemberRolePermission API response:`, createResponse);
+
+          // API interceptor returns response.data directly, so createResponse is already the Result object
+          // Check if the response indicates success
+          const isSuccess =
+            createResponse?.succeeded === true ||
+            createResponse?.Succeeded === true ||
+            (createResponse?.succeeded !== false && createResponse?.Succeeded !== false && !createResponse?.errors && !createResponse?.Errors);
+
+          if (!isSuccess) {
+            const errorMsg =
+              createResponse?.errors?.[0] || createResponse?.Errors?.[0] || createResponse?.message || createResponse?.Message || 'Failed to save permissions';
+            console.error(`Failed to save MemberRolePermissions for member ${memberId}:`, errorMsg);
+            console.error(`Full response:`, createResponse);
+            // Don't throw - continue with other members
+          } else {
+            console.log(`✅ Successfully saved MemberRolePermissions for member ${memberId}. Response:`, createResponse);
+          }
+        } catch (error) {
+          console.error(`Error saving MemberRolePermissions for member ${memberId}:`, error);
+          console.error(`Error details:`, error.response?.data || error.message);
+        }
+      }
     }
+
+    console.log('All member permissions processed successfully');
   };
 
   const committeeTypes = typesData?.data || [];
@@ -516,8 +553,8 @@ const CommitteeForm = ({ initialData = null, onSuccess, onClose }) => {
                   >
                     <option value="">{t('selectType')}</option>
                     {committeeTypes.map(type => (
-                      <option key={type.Id} value={type.Id}>
-                        {i18n.language === 'ar' ? type.ArabicName : type.EnglishName}
+                      <option key={type.Id || type.id} value={type.Id || type.id}>
+                        {i18n.language === 'ar' ? type.arabicName : type.englishName}
                       </option>
                     ))}
                   </select>
@@ -536,8 +573,8 @@ const CommitteeForm = ({ initialData = null, onSuccess, onClose }) => {
                   >
                     <option value="">{t('selectCategory')}</option>
                     {committeeCategories.map(category => (
-                      <option key={category.Id} value={category.Id}>
-                        {i18n.language === 'ar' ? category.ArabicName : category.EnglishName}
+                      <option key={category.Id || category.id} value={category.Id || category.id}>
+                        {i18n.language === 'ar' ? category.arabicName : category.englishName}
                       </option>
                     ))}
                   </select>
@@ -557,8 +594,8 @@ const CommitteeForm = ({ initialData = null, onSuccess, onClose }) => {
                 >
                   <option value="">{t('selectDepartment')}</option>
                   {departments.map(dept => (
-                    <option key={dept.Id} value={dept.Id}>
-                      {i18n.language === 'ar' ? dept.ArabicName : dept.EnglishName}
+                    <option key={dept.Id || dept.id} value={dept.Id || dept.id}>
+                      {i18n.language === 'ar' ? dept.arabicName : dept.englishName}
                     </option>
                   ))}
                 </select>

@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, ExternalLink, Calendar, User, Building2, Users, Globe, Lock, Edit } from 'lucide-react';
 import { useBreadcrumbs } from '../../context';
-import { useGetAnnouncementByIdQuery, useExtractImageFromUrlQuery } from '../../queries';
+import { useGetAnnouncementByIdQuery, useExtractImageFromUrlQuery, useGetCommitteeByIdQuery, useGetCouncilByIdQuery } from '../../queries';
+import { isApiResponseSuccessful } from '../../utils/apiResponseHandler';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import { extractImageFromUrl } from '../../utils/imageExtractor';
@@ -24,6 +25,34 @@ const NewsDetailsPage = () => {
 
   const announcement = announcementData?.data;
   const announcementLink = announcement?.link || announcement?.Link || '';
+  
+  // Get committee and council IDs
+  const committeeId = announcement?.committeeId || announcement?.CommitteeId;
+  const councilId = announcement?.councilId || announcement?.CouncilId;
+  
+  // Fetch committee and council details
+  const { data: committeeResponse } = useGetCommitteeByIdQuery(committeeId ? parseInt(committeeId) : null, {
+    enabled: !!committeeId,
+  });
+  
+  const { data: councilResponse } = useGetCouncilByIdQuery(councilId ? parseInt(councilId) : null, {
+    enabled: !!councilId,
+  });
+  
+  // Extract committee and council names
+  const committeeData = isApiResponseSuccessful(committeeResponse) 
+    ? (committeeResponse?.data?.Data || committeeResponse?.data) 
+    : null;
+  const committeeName = committeeData 
+    ? (i18n.language === 'ar' ? (committeeData.arabicName || committeeData.ArabicName) : (committeeData.englishName || committeeData.EnglishName))
+    : null;
+  
+  const councilData = isApiResponseSuccessful(councilResponse) 
+    ? (councilResponse?.data?.Data || councilResponse?.data) 
+    : null;
+  const councilName = councilData 
+    ? (i18n.language === 'ar' ? (councilData.arabicName || councilData.ArabicName) : (councilData.englishName || councilData.EnglishName))
+    : null;
 
   // Try to extract image synchronously first (for direct images)
   const initialImageUrl = extractImageFromUrl(announcementLink);
@@ -102,8 +131,6 @@ const NewsDetailsPage = () => {
   const description = announcement?.description || announcement?.Description || '';
   const link = announcement?.link || announcement?.Link || '';
   const createdAt = announcement?.createdAt || announcement?.CreatedAt || '';
-  const committeeId = announcement?.committeeId || announcement?.CommitteeId;
-  const councilId = announcement?.councilId || announcement?.CouncilId;
   const isPublic = announcement?.isPublic || announcement?.IsPublic;
 
   return (
@@ -191,7 +218,9 @@ const NewsDetailsPage = () => {
                   <Building2 className="w-5 h-5 text-text-muted mt-0.5" />
                   <div>
                     <p className="text-sm font-medium text-text-muted">{t('details.committee') || 'Committee'}</p>
-                    <p className="text-sm text-text">ID: {committeeId}</p>
+                    <p className="text-sm text-text">
+                      {committeeName || `ID: ${committeeId}`}
+                    </p>
                   </div>
                 </div>
               )}
@@ -200,7 +229,9 @@ const NewsDetailsPage = () => {
                   <Users className="w-5 h-5 text-text-muted mt-0.5" />
                   <div>
                     <p className="text-sm font-medium text-text-muted">{t('details.council') || 'Council'}</p>
-                    <p className="text-sm text-text">ID: {councilId}</p>
+                    <p className="text-sm text-text">
+                      {councilName || `ID: ${councilId}`}
+                    </p>
                   </div>
                 </div>
               )}
