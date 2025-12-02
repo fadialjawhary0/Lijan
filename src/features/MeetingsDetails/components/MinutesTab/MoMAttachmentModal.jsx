@@ -8,7 +8,7 @@ import { useToast } from '../../../../context/ToasterContext';
 import { isApiResponseSuccessful, getApiErrorMessage } from '../../../../utils/apiResponseHandler';
 import { Upload } from 'lucide-react';
 
-const MoMAttachmentModal = ({ isOpen, onClose, minutesOfMeetingId }) => {
+const MoMAttachmentModal = ({ isOpen, onClose, minutesOfMeetingId, onSuccess }) => {
   const { t, i18n } = useTranslation('meetingDetails');
   const { t: tCommon } = useTranslation('common');
   const toast = useToast();
@@ -48,6 +48,7 @@ const MoMAttachmentModal = ({ isOpen, onClose, minutesOfMeetingId }) => {
 
   const onSubmit = async (data, e) => {
     e?.preventDefault(); // Prevent form submission redirect
+    e?.stopPropagation(); // Stop event propagation
 
     if (!file) {
       toast.error(t('minutes.attachments.fileRequired') || 'Please select a file');
@@ -80,9 +81,10 @@ const MoMAttachmentModal = ({ isOpen, onClose, minutesOfMeetingId }) => {
 
       if (isApiResponseSuccessful(response)) {
         toast.success(t('minutes.attachments.createSuccess') || 'Attachment uploaded successfully');
-        onClose();
         reset();
         setFile(null);
+        onSuccess?.();
+        onClose();
       } else {
         const errorMessage = getApiErrorMessage(response, tCommon('error') || 'An error occurred');
         toast.error(errorMessage);
@@ -100,9 +102,11 @@ const MoMAttachmentModal = ({ isOpen, onClose, minutesOfMeetingId }) => {
       <form
         onSubmit={e => {
           e.preventDefault();
+          e.stopPropagation();
           handleSubmit(onSubmit)(e);
         }}
         className="space-y-4"
+        noValidate
       >
         <div>
           <label className="block text-sm font-medium text-text-muted mb-2">{t('minutes.attachments.file') || 'File'}</label>

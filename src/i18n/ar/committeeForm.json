@@ -27,6 +27,8 @@
   "selectCategory": "اختر الفئة",
   "department": "القسم",
   "selectDepartment": "اختر القسم",
+  "council": "المجلس",
+  "selectCouncil": "اختر المجلس (اختياري)",
   "meetingTemplateName": "اسم قالب الاجتماع",
   "meetingTemplateNamePlaceholder": "أدخل اسم قالب الاجتماع",
   "formationDate": "تاريخ إنشاء اللجنة",

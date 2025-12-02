@@ -26,11 +26,11 @@ export const MEETING_TABS = [
     label: 'tabs.minutes',
     icon: FileCheck,
   },
-  {
-    id: 'decisions',
-    label: 'tabs.decisions',
-    icon: Gavel,
-  },
+  // {
+  //   id: 'decisions',
+  //   label: 'tabs.decisions',
+  //   icon: Gavel,
+  // },
   {
     id: 'tasks',
     label: 'tabs.tasks',

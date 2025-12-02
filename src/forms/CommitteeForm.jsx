@@ -11,6 +11,7 @@ import {
   useGetAllCommitteeCategoriesQuery,
   useGetAllCommitteeTypesQuery,
   useAddMembersToCommitteeMutation,
+  useGetAllCouncilsQuery,
 } from '../queries/index';
 import { useToast } from '../context/ToasterContext';
 import { useBreadcrumbs } from '../context';
@@ -60,6 +61,7 @@ const CommitteeForm = ({ initialData = null, onSuccess, onClose }) => {
       ShortName: '',
       TypeId: '',
       CategoryId: '',
+      CouncilId: '',
       StartDate: '',
       EndDate: '',
       FormationDate: '',
@@ -70,6 +72,7 @@ const CommitteeForm = ({ initialData = null, onSuccess, onClose }) => {
   const { data: typesData } = useGetAllCommitteeTypesQuery();
   const { data: categoriesData } = useGetAllCommitteeCategoriesQuery();
   const { data: departmentsData } = useGetAllDepartmentsQuery();
+  const { data: councilsData } = useGetAllCouncilsQuery({ page: 1, pageSize: 1000 });
 
   const createMutation = useCreateCommitteeMutation();
   const updateMutation = useUpdateCommitteeMutation();
@@ -99,6 +102,7 @@ const CommitteeForm = ({ initialData = null, onSuccess, onClose }) => {
         ShortName: committeeDataToUse.ShortName || committeeDataToUse.shortName || '',
         TypeId: committeeDataToUse.TypeId || committeeDataToUse.typeId || '',
         CategoryId: committeeDataToUse.CategoryId || committeeDataToUse.categoryId || '',
+        CouncilId: committeeDataToUse.CouncilId || committeeDataToUse.councilId || '',
         StartDate:
           committeeDataToUse.StartDate || committeeDataToUse.startDate
             ? (committeeDataToUse.StartDate || committeeDataToUse.startDate).toString().split('T')[0]
@@ -116,6 +120,7 @@ const CommitteeForm = ({ initialData = null, onSuccess, onClose }) => {
       if (data.DepartmentId) data.DepartmentId = String(data.DepartmentId);
       if (data.TypeId) data.TypeId = String(data.TypeId);
       if (data.CategoryId) data.CategoryId = String(data.CategoryId);
+      if (data.CouncilId) data.CouncilId = String(data.CouncilId);
 
       reset(data);
     }
@@ -127,6 +132,7 @@ const CommitteeForm = ({ initialData = null, onSuccess, onClose }) => {
       DepartmentId: data.DepartmentId ? parseInt(data.DepartmentId) : null,
       TypeId: data.TypeId ? parseInt(data.TypeId) : null,
       CategoryId: data.CategoryId ? parseInt(data.CategoryId) : null,
+      CouncilId: data.CouncilId ? parseInt(data.CouncilId) : null,
       StartDate: data.StartDate ? new Date(data.StartDate).toISOString() : null,
       EndDate: data.EndDate ? new Date(data.EndDate).toISOString() : null,
       FormationDate: data.FormationDate ? new Date(data.FormationDate).toISOString() : null,
@@ -404,6 +410,7 @@ const CommitteeForm = ({ initialData = null, onSuccess, onClose }) => {
   const committeeTypes = typesData?.data || [];
   const committeeCategories = categoriesData?.data || [];
   const departments = departmentsData?.data || [];
+  const councils = councilsData?.data || [];
 
   // Loading state for update mode
   if (committeeId && isLoadingCommittee) {
@@ -596,6 +603,26 @@ const CommitteeForm = ({ initialData = null, onSuccess, onClose }) => {
                   {departments.map(dept => (
                     <option key={dept.Id || dept.id} value={dept.Id || dept.id}>
                       {i18n.language === 'ar' ? dept.arabicName : dept.englishName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Council */}
+              <div>
+                <label htmlFor="CouncilId" className="block text-sm font-medium text-text mb-2">
+                  {t('council')}
+                </label>
+                <select
+                  id="CouncilId"
+                  {...register('CouncilId')}
+                  className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-brand/30 focus:border-brand transition-colors outline-none bg-surface text-text border-border"
+                  disabled={isSubmitting}
+                >
+                  <option value="">{t('selectCouncil')}</option>
+                  {councils.map(council => (
+                    <option key={council.Id || council.id} value={council.Id || council.id}>
+                      {i18n.language === 'ar' ? council.arabicName || council.ArabicName : council.englishName || council.EnglishName}
                     </option>
                   ))}
                 </select>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Eye, Edit, Trash2, MoreVertical, Video, Play, FileText, Download, X, Calendar, MapPin, Clock, Users, FileCheck } from 'lucide-react';
+import { Eye, Edit, Trash2, MoreVertical, Video, Play, FileText, X, Calendar, MapPin, Clock, Users, FileCheck } from 'lucide-react';
 import Card from '../../../components/ui/Card';
 import { DropdownMenu, DropdownMenuItem } from '../../../components/ui/DropdownMenu';
 import { formatDate, formatDateTime } from '../../../utils/dateUtils';
@@ -20,7 +20,6 @@ const MeetingsTable = ({
   onStartMeeting,
   onJoinMeeting,
   onPublishMinutes,
-  onExport,
   page = 1,
   pageSize = 10,
   onPageChange,
@@ -112,12 +111,12 @@ const MeetingsTable = ({
                 <th className={`px-4 py-3 text-left font-semibold text-text ${isRTL ? 'text-right' : 'text-left'}`}>{t('table.dateTime')}</th>
                 <th className={`px-4 py-3 text-left font-semibold text-text ${isRTL ? 'text-right' : 'text-left'}`}>{t('table.location')}</th>
                 <th className={`px-4 py-3 text-left font-semibold text-text ${isRTL ? 'text-right' : 'text-left'}`}>{t('table.status')}</th>
-                <th className={`px-4 py-3 text-left font-semibold text-text ${isRTL ? 'text-right' : 'text-left'}`}>{t('table.metrics')}</th>
+                {/* <th className={`px-4 py-3 text-left font-semibold text-text ${isRTL ? 'text-right' : 'text-left'}`}>{t('table.metrics')}</th> */}
                 <th className={`px-4 py-3 text-left font-semibold text-text ${isRTL ? 'text-right' : 'text-left'}`}>{t('table.actions')}</th>
               </tr>
             </thead>
             <tbody>
-              <TableSkeleton columnNumbers={7} />
+              <TableSkeleton columnNumbers={6} />
             </tbody>
           </table>
         </div>
@@ -145,7 +144,7 @@ const MeetingsTable = ({
               <th className={`px-4 py-3 text-left font-semibold text-text whitespace-nowrap ${isRTL ? 'text-right' : 'text-left'}`}>{t('table.dateTime')}</th>
               <th className={`px-4 py-3 text-left font-semibold text-text whitespace-nowrap ${isRTL ? 'text-right' : 'text-left'}`}>{t('table.location')}</th>
               <th className={`px-4 py-3 text-left font-semibold text-text whitespace-nowrap ${isRTL ? 'text-right' : 'text-left'}`}>{t('table.status')}</th>
-              <th className={`px-4 py-3 text-left font-semibold text-text whitespace-nowrap ${isRTL ? 'text-right' : 'text-left'}`}>{t('table.metrics')}</th>
+              {/* <th className={`px-4 py-3 text-left font-semibold text-text whitespace-nowrap ${isRTL ? 'text-right' : 'text-left'}`}>{t('table.metrics')}</th> */}
               <th className={`px-4 py-3 text-left font-semibold text-text whitespace-nowrap ${isRTL ? 'text-right' : 'text-left'}`}>{t('table.actions')}</th>
             </tr>
           </thead>
@@ -177,12 +176,14 @@ const MeetingsTable = ({
                 </td>
                 <td className="px-4 py-3">{getLocationDisplay(meeting)}</td>
                 <td className="px-4 py-3">{getStatusBadge(meeting.status)}</td>
+                {/* Metrics column - commented out
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-2 text-xs text-text-muted">
-                    {/* Metrics can be added when API provides them */}
+                    Metrics can be added when API provides them
                     <span className="text-xs text-text-muted">-</span>
                   </div>
                 </td>
+                */}
                 <td className="px-4 py-3">
                   <DropdownMenu
                     trigger={
@@ -263,18 +264,6 @@ const MeetingsTable = ({
                       >
                         <FileText size={16} className="text-text-muted" />
                         <span>{t('publishMinutes')}</span>
-                      </DropdownMenuItem>
-                    )}
-                    {onExport && (
-                      <DropdownMenuItem
-                        onClick={e => {
-                          e.stopPropagation();
-                          onExport(meeting);
-                        }}
-                        className="hover:bg-transparent"
-                      >
-                        <Download size={16} className="text-text-muted" />
-                        <span>{t('export')}</span>
                       </DropdownMenuItem>
                     )}
                     {onDelete && (

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { formatDate, formatTime } from '../../../../utils/dateUtils';
 import { Calendar, MapPin, Users, User, FileText, ListChecks, CheckSquare, Vote, Paperclip } from 'lucide-react';
 
-const MoMPreview = ({ formData, discussionNotes, agendaItems, participants, momAttachments, isRTL }) => {
+const MoMPreview = ({ formData, discussionNotes, agendaItems, participants, momAttachments, tasks = [], votes = [], isRTL }) => {
   const { t } = useTranslation('meetingDetails');
 
   return (
@@ -76,7 +76,11 @@ const MoMPreview = ({ formData, discussionNotes, agendaItems, participants, momA
               <Users className="h-4 w-4 text-gray-600 mt-1 shrink-0" />
               <span className="font-semibold text-gray-700 min-w-[120px]">{t('minutes.attendees')}:</span>
               <div className="flex-1">
-                <span className="text-gray-900">{participants.map(p => p.member?.userInfo?.fullName || `Member ${p.memberId}`).join(', ')}</span>
+                <span className="text-gray-900">
+                  {participants
+                    .map(p => p.userInfo?.fullName || p.member?.userInfo?.fullName || p.member?.fullName || `Member ${p.memberId || p.MemberId || p.id || p.Id}`)
+                    .join(', ')}
+                </span>
               </div>
             </div>
           </div>
@@ -117,47 +121,127 @@ const MoMPreview = ({ formData, discussionNotes, agendaItems, participants, momA
         />
       </section>
 
-      {/* Decisions Section */}
-      <section className="mb-8">
+      {/* Decisions Section - Hidden for now */}
+      {/* <section className="mb-8">
         <h2 className="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-300 flex items-center gap-2">
           <CheckSquare className="h-5 w-5" />
           {t('minutes.decisionsTaken')}
         </h2>
         <p className="text-gray-600 italic">{t('minutes.decisionsComingSoon')}</p>
-      </section>
+      </section> */}
 
       {/* Action Items / Tasks */}
-      <section className="mb-8">
-        <h2 className="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-300 flex items-center gap-2">
-          <ListChecks className="h-5 w-5" />
-          {t('minutes.actionItems')}
-        </h2>
-        <p className="text-gray-600 italic">{t('minutes.tasksComingSoon')}</p>
-      </section>
-
-      {/* Voting Results */}
-      <section
-        className="mb-8"
-        style={{
-          pageBreakInside: 'avoid',
-          breakInside: 'avoid',
-          pageBreakBefore: 'auto',
-          marginTop: '2rem', // Add extra top margin to help push to new page if needed
-          paddingTop: '1rem', // Add padding to ensure section has breathing room
-        }}
-      >
-        <h2
-          className="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-300 flex items-center gap-2"
+      {tasks && tasks.length > 0 && (
+        <section
+          className="mb-8"
           style={{
-            pageBreakAfter: 'avoid',
-            breakAfter: 'avoid',
+            pageBreakInside: 'avoid',
+            breakInside: 'avoid',
+            pageBreakBefore: 'auto',
           }}
         >
-          <Vote className="h-5 w-5" />
-          {t('minutes.votingResults')}
-        </h2>
-        <p className="text-gray-600 italic">{t('minutes.votesComingSoon')}</p>
-      </section>
+          <h2
+            className="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-300 flex items-center gap-2"
+            style={{
+              pageBreakAfter: 'avoid',
+              breakAfter: 'avoid',
+            }}
+          >
+            <ListChecks className="h-5 w-5" />
+            {t('minutes.actionItems')}
+          </h2>
+          <ol className="list-decimal list-inside space-y-3 ml-4" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+            {tasks.map((task, index) => (
+              <li key={task.id || task.Id} className="text-gray-900" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                <span className="font-medium">{isRTL ? task.arabicName || task.ArabicName : task.englishName || task.EnglishName}</span>
+                {task.assignedTo?.fullName && (
+                  <span className="text-gray-600 text-sm ml-2">
+                    ({t('minutes.taskAssignedTo')}: {task.assignedTo.fullName})
+                  </span>
+                )}
+                {task.endDate && (
+                  <span className="text-gray-600 text-sm ml-2">
+                    ({t('minutes.taskDueDate')}: {formatDate(task.endDate)})
+                  </span>
+                )}
+                {task.percentageComplete !== null && task.percentageComplete !== undefined && (
+                  <span className="text-gray-600 text-sm ml-2">
+                    ({t('minutes.taskProgress')}: {task.percentageComplete}%)
+                  </span>
+                )}
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
+      {/* Voting Results */}
+      {votes && votes.length > 0 && (
+        <section
+          className="mb-8"
+          style={{
+            pageBreakInside: 'avoid',
+            breakInside: 'avoid',
+            pageBreakBefore: 'auto',
+            marginTop: '2rem',
+            paddingTop: '1rem',
+          }}
+        >
+          <h2
+            className="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-300 flex items-center gap-2"
+            style={{
+              pageBreakAfter: 'avoid',
+              breakAfter: 'avoid',
+            }}
+          >
+            <Vote className="h-5 w-5" />
+            {t('minutes.votingResults')}
+          </h2>
+          <div className="space-y-4">
+            {votes.map(vote => {
+              const voteId = vote.id || vote.Id;
+              const question = vote.question || vote.Question || '';
+              const isStarted = vote.isStarted || vote.IsStarted;
+              const isEnded = vote.isEnded || vote.IsEnded;
+              const choices = vote.choices || vote.Choices || [];
+              
+              // Calculate total votes from choices if available
+              const totalVotes = choices.reduce((sum, choice) => {
+                return sum + (choice.voteCount || choice.VoteCount || 0);
+              }, 0);
+
+              return (
+                <div key={voteId} className="border-l-4 border-gray-300 pl-4 py-2">
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <p className="font-semibold text-gray-900">{question}</p>
+                    <span
+                      className={`px-2 py-1 rounded text-xs font-medium shrink-0 ${
+                        isStarted && !isEnded
+                          ? 'bg-yellow-500/10 text-yellow-600'
+                          : isEnded
+                          ? 'bg-green-500/10 text-green-600'
+                          : 'bg-gray-500/10 text-gray-600'
+                      }`}
+                    >
+                      {isStarted && !isEnded
+                        ? t('minutes.voteInProgress')
+                        : isEnded
+                        ? t('minutes.voteCompleted')
+                        : t('minutes.votePending')}
+                    </span>
+                  </div>
+                  {vote.description && <p className="text-sm text-gray-600 mt-1 mb-2">{vote.description}</p>}
+                  {isEnded && totalVotes > 0 && (
+                    <p className="text-sm text-gray-600">
+                      {t('minutes.totalVotes')}: {totalVotes}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* Attachments Section */}
       {momAttachments && momAttachments.length > 0 && (

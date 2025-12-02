@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useGetAllNotificationsQuery, useGetAllNotificationPrioritiesQuery, useMarkAsReadMutation, useMarkAllAsReadQuery } from '../../queries/notifications';
+// import { useGetAllNotificationsQuery, useGetAllNotificationPrioritiesQuery, useMarkAsReadMutation, useMarkAllAsReadQuery } from '../../queries/notifications';
 import { useAuth } from '../../context/AuthContext';
 import NotificationTimeline from '../../features/Notifications/components/NotificationTimeline';
 import { formatTimeAgo } from './utils/formatTimeAgo';
@@ -17,32 +17,32 @@ const NotificationsPage = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(7);
 
-  const { data: notifications, isLoading } = useGetAllNotificationsQuery(selectedPriorityId, page, pageSize);
-  const { data: priorities } = useGetAllNotificationPrioritiesQuery();
-  const { mutate: markAsRead } = useMarkAsReadMutation();
-  const { mutate: markAllAsRead } = useMarkAllAsReadQuery(userId || 0);
+  // const { data: notifications, isLoading } = useGetAllNotificationsQuery(selectedPriorityId, page, pageSize);
+  // const { data: priorities } = useGetAllNotificationPrioritiesQuery();
+  // const { mutate: markAsRead } = useMarkAsReadMutation();
+  // const { mutate: markAllAsRead } = useMarkAllAsReadQuery(userId || 0);
 
-  const totalPages = notifications?.totalPages || 0;
-  const totalCount = notifications?.totalCount || 0;
+  // const totalPages = notifications?.totalPages || 0;
+  // const totalCount = notifications?.totalCount || 0;
 
-  const transformedNotifications = useMemo(() => {
-    if (!notifications?.data) return [];
+  // const transformedNotifications = useMemo(() => {
+  // if (!notifications?.data) return [];
 
-    return notifications.data.map(item => ({
-      id: item?.id,
-      title: language === 'ar' ? item?.arabicSubject : item?.englishSubject || 'No Subject',
-      description: language === 'ar' ? item?.arabicBody : item?.englishBody,
-      time: formatTimeAgo(item?.created || ''),
-      type: item?.priority?.code?.toLowerCase() || 'info',
-      isRead: item?.isRead,
-      receivedAt: item?.created || 'No Date',
-      priority: item?.priority,
-      metadata: item?.metadataJson,
-      url: item?.url,
-      recipientUserIdInApp: item?.recipientUserIdInApp,
-    }));
-  }, [notifications?.data, language]);
-
+  // return notifications.data.map(item => ({
+  //     id: item?.id,
+  //     title: language === 'ar' ? item?.arabicSubject : item?.englishSubject || 'No Subject',
+  //     description: language === 'ar' ? item?.arabicBody : item?.englishBody,
+  //     time: formatTimeAgo(item?.created || ''),
+  //     type: item?.priority?.code?.toLowerCase() || 'info',
+  //     isRead: item?.isRead,
+  //     receivedAt: item?.created || 'No Date',
+  //     priority: item?.priority,
+  //     metadata: item?.metadataJson,
+  //     url: item?.url,
+  //     recipientUserIdInApp: item?.recipientUserIdInApp,
+  //   }));
+  // }, [notifications?.data, language]);
+  const transformedNotifications = [];
   const handlePriorityToggle = priorityId => {
     if (selectedPriorityId === priorityId) {
       setSelectedPriorityId(null);

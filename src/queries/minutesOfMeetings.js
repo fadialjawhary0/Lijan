@@ -28,6 +28,18 @@ export const useGetMinutesOfMeetingByIdQuery = (id, options = {}) => {
 };
 
 /**
+ * Get all versions of minutes of meeting by meeting ID
+ */
+export const useGetMinutesOfMeetingVersionsQuery = (meetingId, options = {}) => {
+  return useQuery({
+    queryKey: ['minutesOfMeetingVersions', meetingId],
+    queryFn: () => API.get('/committee-service/MinutesOfMeeting/versions', { params: { MeetingId: meetingId } }),
+    enabled: !!meetingId && (options.enabled !== false),
+    ...options,
+  });
+};
+
+/**
  * Get attachments for minutes of meeting
  */
 export const useGetMinutesOfMeetingAttachmentsQuery = (minutesOfMeetingId, options = {}) => {
@@ -110,11 +122,10 @@ export const useCreateMinutesOfMeetingAttachmentMutation = () => {
 /**
  * Download attachment
  */
-export const downloadMinutesOfMeetingAttachment = async (attachmentId) => {
+export const downloadMinutesOfMeetingAttachment = async attachmentId => {
   const response = await API.get('/committee-service/MinutesOfMeeting/attachments/download', {
     params: { Id: attachmentId },
     responseType: 'blob',
   });
   return response;
 };
-

@@ -124,7 +124,7 @@ const MeetingsFilters = ({ filters, setFilters, types = [], statuses = [], organ
           </div>
 
           {/* Organizer Filter */}
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium text-text-muted mb-2">{t('filters.organizer')}</label>
             <select
               value={filters.organizerFilter || 'all'}
@@ -138,7 +138,7 @@ const MeetingsFilters = ({ filters, setFilters, types = [], statuses = [], organ
                 </option>
               ))}
             </select>
-          </div>
+          </div> */}
 
           {/* Date From */}
           <div>

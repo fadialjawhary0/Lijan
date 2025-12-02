@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useBreadcrumbs } from '../../context';
 import { useCommittee } from '../../context/CommitteeContext';
 import MeetingsHeader from '../../features/Meetings/components/MeetingsHeader';
@@ -7,12 +8,20 @@ import MeetingsFilters from '../../features/Meetings/components/MeetingsFilters'
 import MeetingsTable from '../../features/Meetings/components/MeetingsTable';
 import DeleteDialog from '../../components/ui/DeleteDialog';
 import { useToast } from '../../context/ToasterContext';
-import { useGetAllMeetingsQuery, useGetAllMeetingTypesQuery, useGetAllMeetingStatusesQuery, useDeleteMeetingMutation } from '../../queries';
+import {
+  useGetAllMeetingsQuery,
+  useGetAllMeetingTypesQuery,
+  useGetAllMeetingStatusesQuery,
+  useDeleteMeetingMutation,
+  useUpdateMeetingMutation,
+} from '../../queries';
 import { isApiResponseSuccessful, getApiErrorMessage } from '../../utils/apiResponseHandler';
+import { API } from '../../services/API';
 
 const MeetingsPage = () => {
   const { t, i18n } = useTranslation('meetings');
   const { t: tCommon } = useTranslation('common');
+  const navigate = useNavigate();
   const { setBreadcrumbs } = useBreadcrumbs();
   const { selectedCommitteeId } = useCommittee();
   const toast = useToast();
@@ -72,9 +81,26 @@ const MeetingsPage = () => {
   } = useGetAllMeetingsQuery(meetingsQueryParams, { enabled: !!selectedCommitteeId });
 
   const deleteMeetingMutation = useDeleteMeetingMutation();
+  const updateMeetingMutation = useUpdateMeetingMutation();
 
   const allMeetings = meetingsData?.data || [];
   const apiTotalCount = meetingsData?.totalCount || 0;
+
+  // Find status IDs dynamically
+  const inProgressStatus = meetingStatuses.find(
+    status =>
+      status.englishName?.toLowerCase().includes('progress') ||
+      status.arabicName?.includes('قيد التنفيذ') ||
+      status.EnglishName?.toLowerCase().includes('progress') ||
+      status.ArabicName?.includes('قيد التنفيذ')
+  );
+  const canceledStatus = meetingStatuses.find(
+    status =>
+      status.englishName?.toLowerCase().includes('cancel') ||
+      status.arabicName?.includes('ملغي') ||
+      status.EnglishName?.toLowerCase().includes('cancel') ||
+      status.ArabicName?.includes('ملغي')
+  );
 
   // Apply client-side location filter (online/onsite) since API doesn't support it
   const filteredMeetings = useMemo(() => {
@@ -149,8 +175,10 @@ const MeetingsPage = () => {
   };
 
   const handleEdit = meeting => {
-    // In the future, navigate to edit meeting page
-    toast.info(t('editMeetingInfo'));
+    const meetingId = meeting.id || meeting.Id;
+    if (meetingId) {
+      navigate(`/meetings/update/${meetingId}`);
+    }
   };
 
   const handleDelete = meeting => {
@@ -186,15 +214,139 @@ const MeetingsPage = () => {
     );
   };
 
-  const handleCancel = meeting => {
-    // In the future, this will call an API
-    toast.info(t('cancelMeetingInfo'));
+  const handleCancel = async meeting => {
+    if (!canceledStatus) {
+      toast.error(t('statusNotFound') || 'Canceled status not found');
+      return;
+    }
+
+    const meetingId = meeting.id || meeting.Id;
+    const statusId = canceledStatus.id || canceledStatus.Id;
+
+    try {
+      // Fetch full meeting details first
+      const meetingDetailsResponse = await API.get('/committee-service/Meeting/details', {
+        params: { Id: meetingId },
+      });
+      const meetingDetails = meetingDetailsResponse?.data?.data || meetingDetailsResponse?.data?.Data || meetingDetailsResponse?.data || null;
+
+      if (!meetingDetails) {
+        toast.error(t('meetingNotFound') || 'Meeting not found');
+        return;
+      }
+
+      // Update with new status, preserving all other fields
+      const payload = {
+        Id: parseInt(meetingId),
+        StatusId: parseInt(statusId),
+        ArabicName: meetingDetails.ArabicName || meetingDetails.arabicName || null,
+        EnglishName: meetingDetails.EnglishName || meetingDetails.englishName || null,
+        MeetingTypeId: meetingDetails.MeetingTypeId || meetingDetails.meetingTypeId || null,
+        MeetingLocationId: meetingDetails.MeetingLocationId || meetingDetails.meetingLocationId || null,
+        BuildingId: meetingDetails.BuildingId || meetingDetails.buildingId || null,
+        RoomId: meetingDetails.RoomId || meetingDetails.roomId || null,
+        Date: meetingDetails.Date || meetingDetails.date || null,
+        StartTime: meetingDetails.StartTime || meetingDetails.startTime || null,
+        EndTime: meetingDetails.EndTime || meetingDetails.endTime || null,
+        Notes: meetingDetails.Notes || meetingDetails.notes || null,
+        Link: meetingDetails.Link || meetingDetails.link || null,
+        CommitteeId: meetingDetails.CommitteeId || meetingDetails.committeeId || null,
+        CouncilId: meetingDetails.CouncilId || meetingDetails.councilId || null,
+        IsRecurring: meetingDetails.IsRecurring || meetingDetails.isRecurring || false,
+        RecurrenceType: meetingDetails.RecurrenceType || meetingDetails.recurrenceType || null,
+        RecurrenceInterval: meetingDetails.RecurrenceInterval || meetingDetails.recurrenceInterval || null,
+        RecurrenceCount: meetingDetails.RecurrenceCount || meetingDetails.recurrenceCount || null,
+        RecurrenceEndDate: meetingDetails.RecurrenceEndDate || meetingDetails.recurrenceEndDate || null,
+      };
+
+      updateMeetingMutation.mutate(payload, {
+        onSuccess: response => {
+          if (isApiResponseSuccessful(response)) {
+            toast.success(t('meetingCanceled') || 'Meeting canceled successfully');
+            refetchMeetings();
+          } else {
+            const errorMessage = getApiErrorMessage(response, tCommon('error') || 'An error occurred');
+            toast.error(errorMessage);
+          }
+        },
+        onError: error => {
+          console.error('Cancel meeting error:', error);
+          toast.error(error.message || tCommon('error') || 'An error occurred');
+        },
+      });
+    } catch (error) {
+      console.error('Error fetching meeting details:', error);
+      toast.error(error.message || tCommon('error') || 'An error occurred');
+    }
   };
 
-  const handleStartMeeting = meeting => {
-    if (meeting.link) {
-      window.open(meeting.link, '_blank');
-      toast.success(t('meetingStarted'));
+  const handleStartMeeting = async meeting => {
+    if (!inProgressStatus) {
+      toast.error(t('statusNotFound') || 'In Progress status not found');
+      return;
+    }
+
+    const meetingId = meeting.id || meeting.Id;
+    const statusId = inProgressStatus.id || inProgressStatus.Id;
+
+    try {
+      // Fetch full meeting details first
+      const meetingDetailsResponse = await API.get('/committee-service/Meeting/details', {
+        params: { Id: meetingId },
+      });
+      const meetingDetails = meetingDetailsResponse?.data?.data || meetingDetailsResponse?.data?.Data || meetingDetailsResponse?.data || null;
+
+      if (!meetingDetails) {
+        toast.error(t('meetingNotFound') || 'Meeting not found');
+        return;
+      }
+
+      // Update with new status, preserving all other fields
+      const payload = {
+        Id: parseInt(meetingId),
+        StatusId: parseInt(statusId),
+        ArabicName: meetingDetails.ArabicName || meetingDetails.arabicName || null,
+        EnglishName: meetingDetails.EnglishName || meetingDetails.englishName || null,
+        MeetingTypeId: meetingDetails.MeetingTypeId || meetingDetails.meetingTypeId || null,
+        MeetingLocationId: meetingDetails.MeetingLocationId || meetingDetails.meetingLocationId || null,
+        BuildingId: meetingDetails.BuildingId || meetingDetails.buildingId || null,
+        RoomId: meetingDetails.RoomId || meetingDetails.roomId || null,
+        Date: meetingDetails.Date || meetingDetails.date || null,
+        StartTime: meetingDetails.StartTime || meetingDetails.startTime || null,
+        EndTime: meetingDetails.EndTime || meetingDetails.endTime || null,
+        Notes: meetingDetails.Notes || meetingDetails.notes || null,
+        Link: meetingDetails.Link || meetingDetails.link || null,
+        CommitteeId: meetingDetails.CommitteeId || meetingDetails.committeeId || null,
+        CouncilId: meetingDetails.CouncilId || meetingDetails.councilId || null,
+        IsRecurring: meetingDetails.IsRecurring || meetingDetails.isRecurring || false,
+        RecurrenceType: meetingDetails.RecurrenceType || meetingDetails.recurrenceType || null,
+        RecurrenceInterval: meetingDetails.RecurrenceInterval || meetingDetails.recurrenceInterval || null,
+        RecurrenceCount: meetingDetails.RecurrenceCount || meetingDetails.recurrenceCount || null,
+        RecurrenceEndDate: meetingDetails.RecurrenceEndDate || meetingDetails.recurrenceEndDate || null,
+      };
+
+      updateMeetingMutation.mutate(payload, {
+        onSuccess: response => {
+          if (isApiResponseSuccessful(response)) {
+            toast.success(t('meetingStarted') || 'Meeting started successfully');
+            refetchMeetings();
+            // Open meeting link if available
+            if (meeting.link || meetingDetails.Link || meetingDetails.link) {
+              window.open(meeting.link || meetingDetails.Link || meetingDetails.link, '_blank');
+            }
+          } else {
+            const errorMessage = getApiErrorMessage(response, tCommon('error') || 'An error occurred');
+            toast.error(errorMessage);
+          }
+        },
+        onError: error => {
+          console.error('Start meeting error:', error);
+          toast.error(error.message || tCommon('error') || 'An error occurred');
+        },
+      });
+    } catch (error) {
+      console.error('Error fetching meeting details:', error);
+      toast.error(error.message || tCommon('error') || 'An error occurred');
     }
   };
 
@@ -205,13 +357,10 @@ const MeetingsPage = () => {
   };
 
   const handlePublishMinutes = meeting => {
-    // In the future, this will publish minutes
-    toast.success(t('minutesPublished'));
-  };
-
-  const handleExport = meeting => {
-    // In the future, this will export meeting
-    toast.info(t('exportInfo'));
+    const meetingId = meeting.id || meeting.Id;
+    if (meetingId) {
+      navigate(`/meetings/${meetingId}?tab=minutes`);
+    }
   };
 
   return (
@@ -235,7 +384,6 @@ const MeetingsPage = () => {
             onStartMeeting={handleStartMeeting}
             onJoinMeeting={handleJoinMeeting}
             onPublishMinutes={handlePublishMinutes}
-            onExport={handleExport}
             page={page}
             pageSize={pageSize}
             onPageChange={handlePageChange}

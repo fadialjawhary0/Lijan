@@ -27,6 +27,8 @@
   "selectCategory": "Select Category",
   "department": "Department",
   "selectDepartment": "Select Department",
+  "council": "Council",
+  "selectCouncil": "Select Council (Optional)",
   "meetingTemplateName": "Meeting Template Name",
   "meetingTemplateNamePlaceholder": "Enter meeting template name",
   "formationDate": "Formation Date",

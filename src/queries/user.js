@@ -20,7 +20,7 @@ export const useGetAllUsersQuery = (filters = {}, options = {}) => {
 
   return useQuery({
     queryKey: ['users', params],
-    queryFn: () => API.get('/auth-service/User', { params }),
+    queryFn: () => API.get('/auth-service/User', { params: { ...params, SystemId: 2 } }),
     ...options,
   });
 };

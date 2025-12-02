@@ -92,17 +92,25 @@ const VotesTab = ({ meeting }) => {
 
       // For ended votes, use backend-provided vote counts if available
       if (isEnded && choices.some(c => c.voteCount !== undefined || c.VoteCount !== undefined)) {
+        // Calculate total votes from the sum of all choice voteCounts
+        const totalVotes = choices.reduce((sum, choice) => {
+          return sum + (choice.voteCount || choice.VoteCount || 0);
+        }, 0);
+
         results[voteId] = {
           casts,
           choiceCounts: {},
-          totalVotes: casts.length,
-          choices: choices.map(choice => ({
-            ...choice,
-            count: choice.voteCount || choice.VoteCount || 0,
-            percentage: choice.percentage || 0,
-            voteCount: choice.voteCount || choice.VoteCount || 0,
-            isWinner: choice.isWinner || choice.IsWinner || false,
-          })),
+          totalVotes,
+          choices: choices.map(choice => {
+            const voteCount = choice.voteCount || choice.VoteCount || 0;
+            return {
+              ...choice,
+              count: voteCount,
+              percentage: totalVotes > 0 ? Math.round((voteCount / totalVotes) * 100) : 0,
+              voteCount: voteCount,
+              isWinner: choice.isWinner || choice.IsWinner || false,
+            };
+          }),
         };
       } else {
         // For in-progress votes, calculate from casts

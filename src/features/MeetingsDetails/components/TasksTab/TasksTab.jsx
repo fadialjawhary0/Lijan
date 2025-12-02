@@ -295,7 +295,41 @@ const TasksTab = ({ meeting }) => {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-text">{t('tasks.title')}</h3>
         </div>
-        <TableSkeleton columnNumbers={9} />
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm border border-border">
+            <thead className="bg-surface-elevated border-b border-border">
+              <tr>
+                <th className={`px-4 py-3 text-left font-semibold text-text whitespace-nowrap ${isRTL ? 'text-right' : 'text-left'}`}>
+                  {t('tasks.table.title')}
+                </th>
+                <th className={`px-4 py-3 text-left font-semibold text-text whitespace-nowrap ${isRTL ? 'text-right' : 'text-left'}`}>
+                  {t('tasks.table.agendaItem')}
+                </th>
+                <th className={`px-4 py-3 text-left font-semibold text-text whitespace-nowrap ${isRTL ? 'text-right' : 'text-left'}`}>
+                  {t('tasks.table.assignedTo')}
+                </th>
+                <th className={`px-4 py-3 text-left font-semibold text-text whitespace-nowrap ${isRTL ? 'text-right' : 'text-left'}`}>
+                  {t('tasks.table.status')}
+                </th>
+                <th className={`px-4 py-3 text-left font-semibold text-text whitespace-nowrap ${isRTL ? 'text-right' : 'text-left'}`}>
+                  {t('tasks.table.dueDate')}
+                </th>
+                <th className={`px-4 py-3 text-left font-semibold text-text whitespace-nowrap ${isRTL ? 'text-right' : 'text-left'}`}>
+                  {t('tasks.table.progress')}
+                </th>
+                <th className={`px-4 py-3 text-left font-semibold text-text whitespace-nowrap ${isRTL ? 'text-right' : 'text-left'}`}>
+                  {t('tasks.table.priority')}
+                </th>
+                <th className={`px-4 py-3 text-left font-semibold text-text whitespace-nowrap ${isRTL ? 'text-right' : 'text-left'}`}>
+                  {t('tasks.table.actions')}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <TableSkeleton columnNumbers={9} />
+            </tbody>
+          </table>
+        </div>
       </Card>
     );
   }

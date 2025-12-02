@@ -6,6 +6,8 @@ import Button from '../../../../components/ui/Button';
 import RichTextEditor from '../../../../components/ui/RichTextEditor';
 import {
   useGetMinutesOfMeetingByMeetingIdQuery,
+  useGetMinutesOfMeetingVersionsQuery,
+  useGetMinutesOfMeetingByIdQuery,
   useCreateMinutesOfMeetingMutation,
   useUpdateMinutesOfMeetingMutation,
   usePublishMinutesOfMeetingMutation,
@@ -13,13 +15,15 @@ import {
   downloadMinutesOfMeetingAttachment,
 } from '../../../../queries/minutesOfMeetings';
 import { useGetMeetingByIdQuery, useGetMeetingAgendaQuery, useGetMeetingParticipantsQuery } from '../../../../queries/meetings';
+import { useGetTasksByMeetingIdQuery } from '../../../../queries/tasks';
+import { useGetAllMeetingVotesQuery } from '../../../../queries/votes';
 import MoMAttachmentModal from './MoMAttachmentModal';
 import MoMPreview from './MoMPreview';
 import { useToast } from '../../../../context/ToasterContext';
 import { useAuth } from '../../../../context/AuthContext';
 import { useCommittee } from '../../../../context/CommitteeContext';
 import { isApiResponseSuccessful, getApiErrorMessage } from '../../../../utils/apiResponseHandler';
-import { Save, Send, FileDown, Eye, Edit, Calendar, MapPin, Users, User, FileText, CheckSquare, ListChecks, Vote, Paperclip } from 'lucide-react';
+import { Save, Send, FileDown, Eye, Edit, Calendar, MapPin, Users, User, FileText, CheckSquare, ListChecks, Vote, Paperclip, X } from 'lucide-react';
 import { formatDate, formatTime } from '../../../../utils/dateUtils';
 // Dynamic imports for PDF generation libraries to avoid blocking initial load
 let jsPDF;
@@ -67,16 +71,40 @@ const MinutesTab = ({ meeting }) => {
   const { data: participantsResponse } = useGetMeetingParticipantsQuery(meetingId);
   const participants = participantsResponse?.data || participantsResponse?.Data || [];
 
-  // Fetch MoM attachments (not meeting attachments)
-  const { data: momAttachmentsResponse, refetch: refetchMomAttachments } = useGetMinutesOfMeetingAttachmentsQuery(existingMom ? momData.id : null, {
-    enabled: !!existingMom && !!momData?.id,
-  });
-  const momAttachments = momAttachmentsResponse?.data || momAttachmentsResponse?.Data || [];
-
+  // State declarations (must be before queries that use them)
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [isEditingPublished, setIsEditingPublished] = useState(false);
   const [discussionNotes, setDiscussionNotes] = useState('');
   const [isAttachmentModalOpen, setIsAttachmentModalOpen] = useState(false);
+  const [selectedVersionId, setSelectedVersionId] = useState(null);
+  const [isVersionHistoryOpen, setIsVersionHistoryOpen] = useState(false);
+
+  // Fetch tasks for this meeting
+  const { data: tasksResponse } = useGetTasksByMeetingIdQuery(meetingId);
+  const tasks = tasksResponse?.data || tasksResponse?.Data || [];
+
+  // Fetch voting results for this meeting
+  const { data: votesResponse } = useGetAllMeetingVotesQuery({ MeetingId: meetingId ? parseInt(meetingId) : null, PageSize: 1000 });
+  const votes = votesResponse?.data || votesResponse?.Data || [];
+
+  // Fetch all versions of MoM for version history
+  const { data: versionsResponse } = useGetMinutesOfMeetingVersionsQuery(meetingId, {
+    enabled: !!(meetingId && existingMom),
+  });
+  const versions = versionsResponse?.data || versionsResponse?.Data || [];
+
+  // Fetch selected version if different from current
+  const { data: selectedVersionResponse } = useGetMinutesOfMeetingByIdQuery(selectedVersionId, {
+    enabled: !!selectedVersionId && selectedVersionId !== (existingMom ? momData.id : null),
+  });
+  const selectedVersionData = selectedVersionResponse?.data || selectedVersionResponse?.Data || null;
+
+  // Fetch MoM attachments (not meeting attachments) - use selectedVersionId or current MoM id
+  const momIdToUse = selectedVersionId || (existingMom ? momData.id : null);
+  const { data: momAttachmentsResponse, refetch: refetchMomAttachments } = useGetMinutesOfMeetingAttachmentsQuery(momIdToUse, {
+    enabled: !!momIdToUse,
+  });
+  const momAttachments = momAttachmentsResponse?.data || momAttachmentsResponse?.Data || [];
 
   const createMutation = useCreateMinutesOfMeetingMutation();
   const updateMutation = useUpdateMinutesOfMeetingMutation();
@@ -103,19 +131,21 @@ const MinutesTab = ({ meeting }) => {
 
   // Auto-populate form when meeting details or existing MoM loads
   useEffect(() => {
-    if (existingMom) {
+    const dataToUse = selectedVersionId && selectedVersionData ? selectedVersionData : existingMom ? momData : null;
+
+    if (dataToUse) {
       reset({
-        committeeName: momData.committeeName || '',
-        meetingTitle: momData.meetingTitle || '',
-        meetingDate: momData.meetingDate ? new Date(momData.meetingDate).toISOString().split('T')[0] : '',
-        meetingStartTime: momData.meetingStartTime || '',
-        meetingEndTime: momData.meetingEndTime || '',
-        location: momData.location || '',
-        chairperson: momData.chairperson || '',
-        secretary: momData.secretary || '',
+        committeeName: dataToUse.committeeName || '',
+        meetingTitle: dataToUse.meetingTitle || '',
+        meetingDate: dataToUse.meetingDate ? new Date(dataToUse.meetingDate).toISOString().split('T')[0] : '',
+        meetingStartTime: dataToUse.meetingStartTime || '',
+        meetingEndTime: dataToUse.meetingEndTime || '',
+        location: dataToUse.location || '',
+        chairperson: dataToUse.chairperson || '',
+        secretary: dataToUse.secretary || '',
       });
-      setDiscussionNotes(momData.discussionNotes || '');
-      setIsPreviewMode(momData.status === 3 && !isEditingPublished); // Published status, but not when editing
+      setDiscussionNotes(dataToUse.discussionNotes || '');
+      setIsPreviewMode(dataToUse.status === 3 && !isEditingPublished && !selectedVersionId); // Published status, but not when editing or viewing old version
       setIsEditingPublished(false);
     } else if (meetingDetails) {
       // Auto-populate from meeting details
@@ -124,17 +154,27 @@ const MinutesTab = ({ meeting }) => {
       const endTime = meetingDetails.endTime || '';
 
       reset({
-        committeeName: meetingDetails.committee?.englishName || meetingDetails.committee?.arabicName || '',
+        committeeName:
+          meetingDetails.committee?.englishName ||
+          meetingDetails.committee?.EnglishName ||
+          meetingDetails.committee?.arabicName ||
+          meetingDetails.committee?.ArabicName ||
+          '',
         meetingTitle: isRTL ? meetingDetails.arabicName : meetingDetails.englishName || '',
         meetingDate: meetingDate,
         meetingStartTime: startTime,
         meetingEndTime: endTime,
-        location: meetingDetails.location?.englishName || meetingDetails.location?.arabicName || '',
+        location:
+          meetingDetails.location?.englishName ||
+          meetingDetails.location?.EnglishName ||
+          meetingDetails.location?.arabicName ||
+          meetingDetails.location?.ArabicName ||
+          '',
         chairperson: '',
         secretary: '',
       });
     }
-  }, [existingMom, momData, meetingDetails, reset, isRTL]);
+  }, [existingMom, momData, meetingDetails, reset, isRTL, selectedVersionId, selectedVersionData]);
 
   const isPublished = existingMom && momData.status === 3 && !isEditingPublished; // Published = 3, but not when editing
   const isDraft = !existingMom || momData.status === 1 || isEditingPublished; // Draft = 1, or editing published
@@ -305,65 +345,110 @@ const MinutesTab = ({ meeting }) => {
           windowHeight: previewElement.scrollHeight || previewElement.offsetHeight,
           foreignObjectRendering: false, // Use canvas rendering instead of foreignObject
           onclone: clonedDoc => {
-            // Inject comprehensive style override into cloned document to replace oklch colors
+            // Inject style override to replace oklab/oklch colors with RGB equivalents
+            // This preserves all other styling while fixing the color parsing issue
             const clonedStyle = clonedDoc.createElement('style');
             clonedStyle.textContent = `
-              * {
-                color: rgb(17, 24, 39) !important;
-              }
-              .text-gray-500, .text-gray-600 {
-                color: rgb(75, 85, 99) !important;
-              }
-              .text-gray-700 {
-                color: rgb(55, 65, 81) !important;
-              }
-              .text-gray-800 {
-                color: rgb(31, 41, 55) !important;
-              }
-              .text-gray-900 {
-                color: rgb(17, 24, 39) !important;
-              }
-              .bg-white {
-                background-color: rgb(255, 255, 255) !important;
-              }
-              .bg-gray-50 {
-                background-color: rgb(249, 250, 251) !important;
-              }
-              .border-gray-200 {
-                border-color: rgb(229, 231, 235) !important;
-              }
-              .border-gray-300 {
-                border-color: rgb(209, 213, 219) !important;
-              }
-              .border-gray-800 {
-                border-color: rgb(31, 41, 55) !important;
-              }
-              /* Ensure sections don't break across pages */
-              section {
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-              }
-              /* Specifically ensure Voting Results section stays together */
-              section:last-of-type {
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-                page-break-before: auto !important;
-              }
+              /* Override only colors that use oklab/oklch - preserve all other styles */
             `;
             clonedDoc.head.insertBefore(clonedStyle, clonedDoc.head.firstChild);
 
-            // Also try to remove or disable stylesheets with oklch
-            const stylesheets = Array.from(clonedDoc.styleSheets || []);
-            stylesheets.forEach((sheet, index) => {
+            // Function to convert oklab/oklch to RGB (approximate conversion)
+            const convertColorToRGB = colorValue => {
+              if (!colorValue) return null;
+              const str = colorValue.toString().toLowerCase();
+
+              // If it's already RGB, return as is
+              if (str.includes('rgb') || str.includes('#') || str === 'transparent' || str === 'inherit') {
+                return null; // Don't override
+              }
+
+              // If it contains oklab or oklch, convert to approximate RGB
+              if (str.includes('oklab') || str.includes('oklch')) {
+                // Extract values from oklab/oklch
+                const match = str.match(/oklab\(([^)]+)\)|oklch\(([^)]+)\)/);
+                if (match) {
+                  const values = (match[1] || match[2]).split(/\s+/).map(v => parseFloat(v.trim()));
+                  if (values.length >= 3) {
+                    // Approximate conversion from oklab/oklch to RGB
+                    // This is a simplified conversion - for better accuracy, use a proper color library
+                    const l = values[0] || 0.5;
+                    const a = values[1] || 0;
+                    const b = values[2] || 0;
+
+                    // Convert to RGB (simplified approximation)
+                    const r = Math.round(Math.max(0, Math.min(255, (l + a * 1.5) * 255)));
+                    const g = Math.round(Math.max(0, Math.min(255, (l - a * 0.5 - b * 0.5) * 255)));
+                    const blue = Math.round(Math.max(0, Math.min(255, (l - b * 1.5) * 255)));
+
+                    return `rgb(${r}, ${g}, ${blue})`;
+                  }
+                }
+                // Fallback for oklab/oklch
+                return 'rgb(17, 24, 39)'; // Default dark gray
+              }
+
+              return null; // No conversion needed
+            };
+
+            // Process all elements and fix computed styles that contain oklab/oklch
+            const allElements = clonedDoc.querySelectorAll('*');
+            allElements.forEach(el => {
               try {
-                if (sheet.href && sheet.href.includes('tailwind')) {
-                  // Try to disable Tailwind stylesheet in clone
-                  if (sheet.ownerNode) {
-                    sheet.ownerNode.disabled = true;
+                // Get computed styles
+                const computedStyle = clonedDoc.defaultView?.getComputedStyle(el);
+                if (!computedStyle) return;
+
+                // Check and fix color
+                const color = computedStyle.color;
+                if (color && (color.includes('oklab') || color.includes('oklch'))) {
+                  const rgbColor = convertColorToRGB(color);
+                  if (rgbColor) {
+                    el.style.color = rgbColor;
+                  }
+                }
+
+                // Check and fix backgroundColor
+                const bgColor = computedStyle.backgroundColor;
+                if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)' && bgColor !== 'transparent' && (bgColor.includes('oklab') || bgColor.includes('oklch'))) {
+                  const rgbBgColor = convertColorToRGB(bgColor);
+                  if (rgbBgColor) {
+                    el.style.backgroundColor = rgbBgColor;
+                  }
+                }
+
+                // Check and fix borderColor
+                const borderColor = computedStyle.borderColor;
+                if (borderColor && borderColor !== 'rgba(0, 0, 0, 0)' && (borderColor.includes('oklab') || borderColor.includes('oklch'))) {
+                  const rgbBorderColor = convertColorToRGB(borderColor);
+                  if (rgbBorderColor) {
+                    el.style.borderColor = rgbBorderColor;
+                  }
+                }
+
+                // Check inline styles too
+                if (el.style) {
+                  const inlineColor = el.style.color;
+                  const inlineBgColor = el.style.backgroundColor;
+                  const inlineBorderColor = el.style.borderColor;
+
+                  if (inlineColor && (inlineColor.includes('oklab') || inlineColor.includes('oklch'))) {
+                    const rgbColor = convertColorToRGB(inlineColor);
+                    if (rgbColor) el.style.color = rgbColor;
+                  }
+
+                  if (inlineBgColor && (inlineBgColor.includes('oklab') || inlineBgColor.includes('oklch'))) {
+                    const rgbBgColor = convertColorToRGB(inlineBgColor);
+                    if (rgbBgColor) el.style.backgroundColor = rgbBgColor;
+                  }
+
+                  if (inlineBorderColor && (inlineBorderColor.includes('oklab') || inlineBorderColor.includes('oklch'))) {
+                    const rgbBorderColor = convertColorToRGB(inlineBorderColor);
+                    if (rgbBorderColor) el.style.borderColor = rgbBorderColor;
                   }
                 }
               } catch (e) {
-                // Ignore cross-origin errors
+                // Ignore errors for individual elements
               }
             });
           },
@@ -394,30 +479,17 @@ const MinutesTab = ({ meeting }) => {
       const imgWidth = 210; // A4 width in mm
       const pageHeight = 297; // A4 height in mm
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
 
       const pdf = new PDF('p', 'mm', 'a4');
       let position = 0;
+      let heightLeft = imgHeight;
 
       // Add first page
       pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
 
       // Add additional pages if content is longer than one page
-      // Use a threshold to ensure sections don't get cut - if less than 80mm remains, start new page
-      const minRemainingForSection = 80; // Minimum mm needed for a section to fit
-
       while (heightLeft > 0) {
-        // If remaining height is less than threshold and greater than 0,
-        // it means we're near the end and should start a new page for the last section
-        if (heightLeft < minRemainingForSection && heightLeft > 0) {
-          pdf.addPage();
-          // Position the image so the remaining content starts at the top of the new page
-          position = heightLeft - imgHeight;
-          pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-          break;
-        }
-
         position = heightLeft - imgHeight;
         pdf.addPage();
         pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
@@ -469,6 +541,8 @@ const MinutesTab = ({ meeting }) => {
             agendaItems={agendaItems}
             participants={participants}
             momAttachments={momAttachments}
+            tasks={tasks}
+            votes={votes}
             isRTL={isRTL}
           />
         </div>
@@ -481,6 +555,8 @@ const MinutesTab = ({ meeting }) => {
             agendaItems={agendaItems}
             participants={participants}
             momAttachments={momAttachments}
+            tasks={tasks}
+            votes={votes}
             isRTL={isRTL}
           />
         </div>
@@ -529,6 +605,8 @@ const MinutesTab = ({ meeting }) => {
           agendaItems={agendaItems}
           participants={participants}
           momAttachments={momAttachments}
+          tasks={tasks}
+          votes={votes}
           isRTL={isRTL}
         />
       </div>
@@ -555,6 +633,11 @@ const MinutesTab = ({ meeting }) => {
                   <span className="text-xs text-text-muted">
                     ({t('minutes.version')} {momData.version})
                   </span>
+                )}
+                {existingMom && versions && versions.length > 1 && (
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setIsVersionHistoryOpen(true)} className="cursor-pointer text-xs">
+                    {t('minutes.viewVersions')}
+                  </Button>
                 )}
               </div>
               {isPublished && momData.publishedDate && (
@@ -721,9 +804,10 @@ const MinutesTab = ({ meeting }) => {
               <div className="px-3 py-2 border border-border rounded-lg bg-surface text-text min-h-[42px]">
                 {participants.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
-                    {participants.map(p => (
-                      <span key={p.id} className="text-sm">
-                        {p.member?.userInfo?.fullName || `Member ${p.memberId}`}
+                    {participants.map((p, index) => (
+                      <span key={p.id || p.Id || index} className="text-sm">
+                        {p.userInfo?.fullName || p.member?.userInfo?.fullName || p.member?.fullName || `Member ${p.memberId || p.MemberId || p.id || p.Id}`}
+                        {index < participants.length - 1 && <span>, </span>}
                       </span>
                     ))}
                   </div>
@@ -807,8 +891,8 @@ const MinutesTab = ({ meeting }) => {
           )}
         </Card>
 
-        {/* Decisions Section */}
-        <Card className="p-6">
+        {/* Decisions Section - Hidden for now */}
+        {/* <Card className="p-6">
           <h3 className="text-lg font-semibold text-text mb-4 flex items-center gap-2">
             <CheckSquare className="h-5 w-5" />
             {t('minutes.decisionsTaken')}
@@ -816,7 +900,7 @@ const MinutesTab = ({ meeting }) => {
           <p className="text-text-muted text-sm">
             {t('minutes.decisionsComingSoon') || 'Decisions will be displayed here once the Decisions API is implemented.'}
           </p>
-        </Card>
+        </Card> */}
 
         {/* Action Items / Tasks */}
         <Card className="p-6">
@@ -824,7 +908,39 @@ const MinutesTab = ({ meeting }) => {
             <ListChecks className="h-5 w-5" />
             {t('minutes.actionItems')}
           </h3>
-          <p className="text-text-muted text-sm">{t('minutes.tasksComingSoon') || 'Tasks will be displayed here once the Tasks API is implemented.'}</p>
+          {tasks && tasks.length > 0 ? (
+            <div className="space-y-3">
+              {tasks.map(task => (
+                <div key={task.id || task.Id} className="p-3 bg-surface-elevated rounded-lg border border-border">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <p className="text-text font-medium">{isRTL ? task.arabicName || task.ArabicName : task.englishName || task.EnglishName}</p>
+                      {task.description && <p className="text-sm text-text-muted mt-1">{task.description}</p>}
+                      <div className="flex items-center gap-4 mt-2 text-xs text-text-muted">
+                        {task.assignedTo?.fullName && (
+                          <span>
+                            {t('minutes.taskAssignedTo')}: {task.assignedTo.fullName}
+                          </span>
+                        )}
+                        {task.endDate && (
+                          <span>
+                            {t('minutes.taskDueDate')}: {formatDate(task.endDate)}
+                          </span>
+                        )}
+                        {task.percentageComplete !== null && task.percentageComplete !== undefined && (
+                          <span>
+                            {t('minutes.taskProgress')}: {task.percentageComplete}%
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-text-muted text-sm">{t('minutes.noTasks')}</p>
+          )}
         </Card>
 
         {/* Voting Results */}
@@ -833,19 +949,63 @@ const MinutesTab = ({ meeting }) => {
             <Vote className="h-5 w-5" />
             {t('minutes.votingResults')}
           </h3>
-          <p className="text-text-muted text-sm">
-            {t('minutes.votesComingSoon') || 'Voting results will be displayed here once the Votes API is implemented.'}
-          </p>
+          {votes && votes.length > 0 ? (
+            <div className="space-y-4">
+              {votes.map(vote => {
+                const voteId = vote.id || vote.Id;
+                const question = vote.question || vote.Question || '';
+                const isStarted = vote.isStarted || vote.IsStarted;
+                const isEnded = vote.isEnded || vote.IsEnded;
+                const choices = vote.choices || vote.Choices || [];
+
+                // Calculate total votes from choices if available
+                const totalVotes = choices.reduce((sum, choice) => {
+                  return sum + (choice.voteCount || choice.VoteCount || 0);
+                }, 0);
+
+                return (
+                  <div key={voteId} className="p-4 bg-surface-elevated rounded-lg border border-border">
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div className="flex-1">
+                        <p className="text-text font-semibold">{question}</p>
+                        {vote.description && <p className="text-sm text-text-muted mt-1">{vote.description}</p>}
+                      </div>
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-medium ${
+                          isStarted && !isEnded
+                            ? 'bg-yellow-500/10 text-yellow-500'
+                            : isEnded
+                            ? 'bg-green-500/10 text-green-500'
+                            : 'bg-gray-500/10 text-gray-500'
+                        }`}
+                      >
+                        {isStarted && !isEnded ? t('minutes.voteInProgress') : isEnded ? t('minutes.voteCompleted') : t('minutes.votePending')}
+                      </span>
+                    </div>
+                    {isEnded && totalVotes > 0 && (
+                      <div className="mt-3 pt-3 border-t border-border">
+                        <p className="text-sm text-text-muted">
+                          {t('minutes.totalVotes')}: {totalVotes}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-text-muted text-sm">{t('minutes.noVotes')}</p>
+          )}
         </Card>
 
         {/* Attachments Section */}
-        <Card className={`p-6 ${isPreviewMode ? 'print-view' : ''}`}>
+        {/* <Card className={`p-6 ${isPreviewMode ? 'print-view' : ''}`}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-text flex items-center gap-2">
               <Paperclip className="h-5 w-5" />
               {t('minutes.attachmentsLabel')}
             </h3>
-            {!isPreviewMode && existingMom && !isPublished && (
+            {!isPreviewMode && existingMom && (
               <Button type="button" variant="ghost" size="sm" onClick={() => setIsAttachmentModalOpen(true)} className="cursor-pointer">
                 {t('minutes.attachments.upload') || 'Upload'}
               </Button>
@@ -897,16 +1057,105 @@ const MinutesTab = ({ meeting }) => {
           ) : (
             <p className="text-text-muted text-sm">{t('minutes.noAttachments')}</p>
           )}
-        </Card>
+        </Card> */}
 
-        <MoMAttachmentModal
+        {/* <MoMAttachmentModal
           isOpen={isAttachmentModalOpen}
           onClose={() => {
             setIsAttachmentModalOpen(false);
             refetchMomAttachments();
           }}
-          minutesOfMeetingId={existingMom ? momData.id : null}
-        />
+          onSuccess={() => {
+            refetchMomAttachments();
+          }}
+          minutesOfMeetingId={selectedVersionId || (existingMom ? momData.id : null)}
+        /> */}
+
+        {/* Version History Modal */}
+        {isVersionHistoryOpen && versions && versions.length > 0 && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <Card className="max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-text">{t('minutes.versionHistory')}</h3>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setIsVersionHistoryOpen(false)}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="space-y-3">
+                  {versions.map(version => (
+                    <div
+                      key={version.id || version.Id}
+                      className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                        selectedVersionId === (version.id || version.Id) || (!selectedVersionId && version.id === momData?.id)
+                          ? 'border-brand bg-brand/5'
+                          : 'border-border hover:border-brand/50'
+                      }`}
+                      onClick={() => {
+                        if (version.id === momData?.id) {
+                          setSelectedVersionId(null);
+                        } else {
+                          setSelectedVersionId(version.id || version.Id);
+                        }
+                        setIsVersionHistoryOpen(false);
+                      }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-text">
+                            {t('minutes.version')} {version.version || version.Version}
+                            {version.id === momData?.id && <span className="ml-2 text-xs text-brand">({t('minutes.current')})</span>}
+                          </p>
+                          {version.publishedDate && (
+                            <p className="text-xs text-text-muted mt-1">
+                              {t('minutes.publishedOn')}: {formatDate(version.publishedDate)}
+                            </p>
+                          )}
+                          {version.status === 3 && (
+                            <span className="inline-block mt-2 px-2 py-1 rounded text-xs font-medium bg-green-500/10 text-green-500 border border-green-500">
+                              {t('minutes.statusPublished')}
+                            </span>
+                          )}
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={e => {
+                            e.stopPropagation();
+                            if (version.id === momData?.id) {
+                              setSelectedVersionId(null);
+                            } else {
+                              setSelectedVersionId(version.id || version.Id);
+                            }
+                            setIsVersionHistoryOpen(false);
+                          }}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {selectedVersionId && (
+                  <div className="mt-4 pt-4 border-t border-border">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedVersionId(null);
+                        setIsVersionHistoryOpen(false);
+                      }}
+                    >
+                      {t('minutes.backToCurrent')}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </Card>
+          </div>
+        )}
       </form>
     </div>
   );
