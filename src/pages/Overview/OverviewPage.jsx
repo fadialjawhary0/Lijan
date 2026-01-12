@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useBreadcrumbs } from '../../context';
 import { useCommittee } from '../../context/CommitteeContext';
@@ -10,6 +10,8 @@ import OverviewKPISection from '../../features/Overview/components/OverviewKPISe
 import UpcomingMeetingWidget from '../../features/Overview/components/UpcomingMeetingWidget';
 import ActivityTimeline from '../../features/Overview/components/ActivityTimeline';
 import QuickActions from '../../features/Overview/components/QuickActions';
+import OverviewTabs from '../../features/Overview/components/OverviewTabs';
+import PowerBI from '../../features/Overview/components/PowerBI';
 import { MOCK_ACTIVITIES } from '../../features/Overview/constants/overview.const';
 import TableSkeleton from '../../components/skeletons/TableSkeleton';
 
@@ -54,6 +56,7 @@ const OverviewPage = () => {
   const { t, i18n } = useTranslation('overview');
   const { setBreadcrumbs } = useBreadcrumbs();
   const { selectedCommitteeId } = useCommittee();
+  const [activeTab, setActiveTab] = useState('overview');
 
   const { data: committeeResponse, isLoading: isLoadingCommittee } = useGetCommitteeByIdQuery(selectedCommitteeId ? parseInt(selectedCommitteeId) : null, {
     enabled: !!selectedCommitteeId,
@@ -212,43 +215,51 @@ const OverviewPage = () => {
     []
   );
 
-  if (isLoadingCommittee || isLoadingMeetings) {
-    return (
-      <div className="space-y-6">
-        <TableSkeleton rows={3} />
-      </div>
-    );
-  }
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'overview':
+        if (isLoadingCommittee || isLoadingMeetings) {
+          return <TableSkeleton rows={3} />;
+        }
+        if (!committeeInfo || !kpis) {
+          return (
+            <div className="text-center py-12">
+              <p className="text-text-muted">{t('noCommitteeSelected')}</p>
+            </div>
+          );
+        }
+        return (
+          <div className="space-y-6">
+            {/* Committee Info Section */}
+            <CommitteeInfoSection committeeInfo={committeeInfo} />
 
-  if (!committeeInfo || !kpis) {
-    return (
-      <div className="space-y-6">
-        <div className="text-center py-12">
-          <p className="text-text-muted">{t('noCommitteeSelected')}</p>
-        </div>
-      </div>
-    );
-  }
+            {/* KPIs Section */}
+            <OverviewKPISection kpis={kpis} />
+
+            {/* Two Column Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Upcoming Meeting Widget */}
+              <UpcomingMeetingWidget meeting={upcomingMeeting} />
+
+              {/* Quick Actions */}
+              <QuickActions actions={quickActions} />
+            </div>
+
+            {/* Activity Timeline */}
+            <ActivityTimeline activities={activities} />
+          </div>
+        );
+      case 'powerbi':
+        return <PowerBI />;
+      default:
+        return <PowerBI />;
+    }
+  };
 
   return (
     <div className="space-y-6">
-      {/* Committee Info Section */}
-      <CommitteeInfoSection committeeInfo={committeeInfo} />
-
-      {/* KPIs Section */}
-      <OverviewKPISection kpis={kpis} />
-
-      {/* Two Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Upcoming Meeting Widget */}
-        <UpcomingMeetingWidget meeting={upcomingMeeting} />
-
-        {/* Quick Actions */}
-        <QuickActions actions={quickActions} />
-      </div>
-
-      {/* Activity Timeline */}
-      <ActivityTimeline activities={activities} />
+      <OverviewTabs activeTab={activeTab} onTabChange={setActiveTab} />
+      {renderTabContent()}
     </div>
   );
 };

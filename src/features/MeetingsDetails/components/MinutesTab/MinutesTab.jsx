@@ -17,6 +17,8 @@ import {
 import { useGetMeetingByIdQuery, useGetMeetingAgendaQuery, useGetMeetingParticipantsQuery } from '../../../../queries/meetings';
 import { useGetTasksByMeetingIdQuery } from '../../../../queries/tasks';
 import { useGetAllMeetingVotesQuery } from '../../../../queries/votes';
+import { useGetCommitteeByIdQuery } from '../../../../queries/committees';
+import { useGetMembersByCommitteeIdQuery } from '../../../../queries/members';
 import MoMAttachmentModal from './MoMAttachmentModal';
 import MoMPreview from './MoMPreview';
 import { useToast } from '../../../../context/ToasterContext';
@@ -63,6 +65,18 @@ const MinutesTab = ({ meeting }) => {
   // Fetch meeting details for auto-population
   const { data: meetingDetailsResponse } = useGetMeetingByIdQuery(meetingId);
   const meetingDetails = meetingDetailsResponse?.data || meetingDetailsResponse?.Data || null;
+
+  // Fetch committee details by ID from localStorage
+  const { data: committeeResponse } = useGetCommitteeByIdQuery(selectedCommitteeId ? parseInt(selectedCommitteeId) : null, {
+    enabled: !!selectedCommitteeId,
+  });
+  const committeeData = committeeResponse?.data || committeeResponse?.Data || null;
+
+  // Fetch committee members to get current user's member ID
+  const { data: committeeMembersResponse } = useGetMembersByCommitteeIdQuery(selectedCommitteeId ? parseInt(selectedCommitteeId) : null, {
+    enabled: !!selectedCommitteeId,
+  });
+  const committeeMembers = committeeMembersResponse?.data || committeeMembersResponse?.Data || [];
 
   // Fetch related data
   const { data: agendaResponse } = useGetMeetingAgendaQuery(meetingId);
@@ -115,6 +129,7 @@ const MinutesTab = ({ meeting }) => {
     handleSubmit,
     reset,
     watch,
+    setValue,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -132,10 +147,33 @@ const MinutesTab = ({ meeting }) => {
   // Auto-populate form when meeting details or existing MoM loads
   useEffect(() => {
     const dataToUse = selectedVersionId && selectedVersionData ? selectedVersionData : existingMom ? momData : null;
+    console.log('🚀 ~ MinutesTab ~ dataToUse:', dataToUse);
+
+    // Get committee name from various sources (priority: MoM data > meeting details > committee data)
+    const getCommitteeName = () => {
+      if (dataToUse?.committeeName) {
+        return dataToUse.committeeName;
+      }
+      if (meetingDetails?.committee) {
+        return (
+          meetingDetails.committee.englishName ||
+          meetingDetails.committee.EnglishName ||
+          meetingDetails.committee.arabicName ||
+          meetingDetails.committee.ArabicName ||
+          ''
+        );
+      }
+      if (committeeData) {
+        return isRTL
+          ? committeeData.arabicName || committeeData.ArabicName || committeeData.englishName || committeeData.EnglishName || ''
+          : committeeData.englishName || committeeData.EnglishName || committeeData.arabicName || committeeData.ArabicName || '';
+      }
+      return '';
+    };
 
     if (dataToUse) {
       reset({
-        committeeName: dataToUse.committeeName || '',
+        committeeName: dataToUse.committeeName || getCommitteeName(),
         meetingTitle: dataToUse.meetingTitle || '',
         meetingDate: dataToUse.meetingDate ? new Date(dataToUse.meetingDate).toISOString().split('T')[0] : '',
         meetingStartTime: dataToUse.meetingStartTime || '',
@@ -154,12 +192,7 @@ const MinutesTab = ({ meeting }) => {
       const endTime = meetingDetails.endTime || '';
 
       reset({
-        committeeName:
-          meetingDetails.committee?.englishName ||
-          meetingDetails.committee?.EnglishName ||
-          meetingDetails.committee?.arabicName ||
-          meetingDetails.committee?.ArabicName ||
-          '',
+        committeeName: getCommitteeName(),
         meetingTitle: isRTL ? meetingDetails.arabicName : meetingDetails.englishName || '',
         meetingDate: meetingDate,
         meetingStartTime: startTime,
@@ -173,8 +206,37 @@ const MinutesTab = ({ meeting }) => {
         chairperson: '',
         secretary: '',
       });
+    } else if (committeeData) {
+      // Auto-populate committee name from committee data if no meeting details or MoM data
+      reset({
+        committeeName: getCommitteeName(),
+        meetingTitle: '',
+        meetingDate: '',
+        meetingStartTime: '',
+        meetingEndTime: '',
+        location: '',
+        chairperson: '',
+        secretary: '',
+      });
     }
-  }, [existingMom, momData, meetingDetails, reset, isRTL, selectedVersionId, selectedVersionData]);
+  }, [existingMom, momData, meetingDetails, reset, isRTL, selectedVersionId, selectedVersionData, committeeData]);
+
+  // Update committee name field when committee data loads (even if form is already populated)
+  useEffect(() => {
+    if (committeeData && !existingMom && !momData) {
+      const committeeName = isRTL
+        ? committeeData.arabicName || committeeData.ArabicName || committeeData.englishName || committeeData.EnglishName || ''
+        : committeeData.englishName || committeeData.EnglishName || committeeData.arabicName || committeeData.ArabicName || '';
+
+      if (committeeName) {
+        const currentCommitteeName = watch('committeeName');
+        // Only update if the field is empty or doesn't match
+        if (!currentCommitteeName || currentCommitteeName.trim() === '') {
+          setValue('committeeName', committeeName);
+        }
+      }
+    }
+  }, [committeeData, setValue, watch, isRTL, existingMom, momData]);
 
   const isPublished = existingMom && momData.status === 3 && !isEditingPublished; // Published = 3, but not when editing
   const isDraft = !existingMom || momData.status === 1 || isEditingPublished; // Draft = 1, or editing published
@@ -224,9 +286,38 @@ const MinutesTab = ({ meeting }) => {
     }
 
     try {
+      // Find the current user's member ID
+      // First, try to find from participants list
+      let currentUserMemberId = null;
+
+      if (userId && participants.length > 0) {
+        const currentUserParticipant = participants.find(
+          p =>
+            (p.userInfo?.userId || p.userInfo?.UserId || p.member?.userId || p.member?.UserId) === parseInt(userId) ||
+            (p.userInfo?.id || p.userInfo?.Id) === parseInt(userId)
+        );
+        if (currentUserParticipant) {
+          currentUserMemberId =
+            currentUserParticipant.memberId || currentUserParticipant.MemberId || currentUserParticipant.member?.id || currentUserParticipant.member?.Id;
+        }
+      }
+
+      // If not found in participants, try to find from committee members
+      if (!currentUserMemberId && userId && committeeMembers.length > 0) {
+        const currentUserMember = committeeMembers.find(m => (m.userId || m.UserId) === parseInt(userId));
+        if (currentUserMember) {
+          currentUserMemberId = currentUserMember.id || currentUserMember.Id;
+        }
+      }
+
+      if (!currentUserMemberId) {
+        toast.error(t('minutes.memberNotFound') || 'Could not find your member ID. Please ensure you are a member of this committee.');
+        return;
+      }
+
       const response = await publishMutation.mutateAsync({
         Id: momData.id,
-        PublishedByMemberId: userId ? parseInt(userId) : null,
+        PublishedByMemberId: parseInt(currentUserMemberId),
       });
 
       if (isApiResponseSuccessful(response)) {

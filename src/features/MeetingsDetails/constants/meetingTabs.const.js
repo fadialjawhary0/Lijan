@@ -1,4 +1,4 @@
-import { FileText, List, Users, Paperclip, FileCheck, Gavel, CheckSquare, Vote } from 'lucide-react';
+import { FileText, List, Users, Paperclip, FileCheck, Gavel, CheckSquare, Vote, Video } from 'lucide-react';
 
 export const MEETING_TABS = [
   {
@@ -21,11 +21,6 @@ export const MEETING_TABS = [
     label: 'tabs.attachments',
     icon: Paperclip,
   },
-  {
-    id: 'minutes',
-    label: 'tabs.minutes',
-    icon: FileCheck,
-  },
   // {
   //   id: 'decisions',
   //   label: 'tabs.decisions',
@@ -40,5 +35,10 @@ export const MEETING_TABS = [
     id: 'votes',
     label: 'tabs.votes',
     icon: Vote,
+  },
+  {
+    id: 'minutes',
+    label: 'tabs.minutes',
+    icon: FileCheck,
   },
 ];

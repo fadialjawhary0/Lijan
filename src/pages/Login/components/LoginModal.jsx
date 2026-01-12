@@ -67,7 +67,11 @@ const LoginModal = ({ isOpen, onClose }) => {
         },
         onError: error => {
           setIsLoading(false);
-          const errorMessage = error.response?.data?.errors?.[0] || error.message || 'Invalid username or password.';
+          // Handle encryption errors specifically
+          const errorMessage =
+            error.message?.includes('encryption') || error.message?.includes('encrypt') || error.message?.includes('public key')
+              ? 'Failed to encrypt password. Please try again.'
+              : error.response?.data?.errors?.[0] || error.message || 'Invalid username or password.';
           setError(errorMessage);
         },
       }

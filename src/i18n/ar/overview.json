@@ -34,5 +34,9 @@
   "latestActivity": "أحدث الأنشطة",
   "noActivities": "لا توجد أنشطة حديثة",
   "quickActions": "إجراءات سريعة",
-  "noCommitteeSelected": "لم يتم اختيار لجنة. يرجى اختيار لجنة لعرض نظرة عامة عليها."
+  "noCommitteeSelected": "لم يتم اختيار لجنة. يرجى اختيار لجنة لعرض نظرة عامة عليها.",
+  "tabs": {
+    "overview": "نظرة عامة",
+    "powerBI": "Power BI"
+  }
 }

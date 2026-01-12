@@ -21,10 +21,8 @@ const MeetingsDetailsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const isRTL = i18n.language === 'ar';
 
-  // Get active tab from URL params, default to 'details'
   const activeTab = searchParams.get('tab') || 'details';
 
-  // Fetch meeting details
   const { data: meetingResponse, isLoading } = useGetMeetingByIdQuery(meetingId);
   const meeting = meetingResponse?.data || meetingResponse?.Data || null;
 

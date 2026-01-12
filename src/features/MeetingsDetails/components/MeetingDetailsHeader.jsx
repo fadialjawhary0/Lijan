@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, ArrowRight, Edit, Download } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Edit } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../../components/ui/Button';
 import { useTranslation } from 'react-i18next';
@@ -12,6 +12,13 @@ const MeetingDetailsHeader = ({ meeting }) => {
 
   const handleBackClick = () => {
     navigate('/meetings');
+  };
+
+  const handleEditClick = () => {
+    const meetingId = meeting.id || meeting.Id;
+    if (meetingId) {
+      navigate(`/meetings/update/${meetingId}`);
+    }
   };
 
   const getStatusBadge = status => {
@@ -52,12 +59,8 @@ const MeetingDetailsHeader = ({ meeting }) => {
           </div>
         </div>
       </div>
-      <div className="flex items-center flex-col sm:flex-row gap-2 space-x-2">
-        <Button variant="outline">
-          <Download className="h-4 w-4" />
-          {t('export')}
-        </Button>
-        <Button variant="primary">
+      <div className="flex items-center gap-2">
+        <Button variant="primary" onClick={handleEditClick}>
           <Edit className="h-4 w-4" />
           {t('edit')}
         </Button>
@@ -67,4 +70,3 @@ const MeetingDetailsHeader = ({ meeting }) => {
 };
 
 export default MeetingDetailsHeader;
-

@@ -34,6 +34,10 @@
   "latestActivity": "Latest Activity",
   "noActivities": "No recent activity",
   "quickActions": "Quick Actions",
-  "noCommitteeSelected": "No committee selected. Please select a committee to view its overview."
+  "noCommitteeSelected": "No committee selected. Please select a committee to view its overview.",
+  "tabs": {
+    "overview": "Overview",
+    "powerBI": "Power BI"
+  }
 }
 

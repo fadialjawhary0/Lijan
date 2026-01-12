@@ -10,16 +10,18 @@ const MoMPreview = ({ formData, discussionNotes, agendaItems, participants, momA
     <div className="bg-white p-8 md:p-12 max-w-4xl mx-auto shadow-lg print:shadow-none print:p-8" style={{ width: '100%', minHeight: '100vh' }}>
       {/* Header */}
       <div className="text-center mb-8 border-b-2 border-gray-800 pb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('minutes.title')}</h1>
+        <span className="text-3xl font-bold text-gray-900 mb-2">{t('minutes.title')}</span>
         {formData.meetingTitle && <p className="text-lg text-gray-600">{formData.meetingTitle}</p>}
       </div>
 
       {/* Meeting Header Section */}
       <section className="mb-8">
-        <h2 className="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-300 flex items-center gap-2">
-          <FileText className="h-5 w-5" />
-          {t('minutes.meetingHeader')}
-        </h2>
+        <div className="mb-4 border-b border-brand pb-2">
+          <span className="font-bold text-gray-700 flex items-center gap-2 text-xl pb-2">
+            <FileText className="h-5 w-5" />
+            {t('minutes.meetingHeader')}
+          </span>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           {formData.committeeName && (
             <div className="flex items-start gap-2">
@@ -78,7 +80,9 @@ const MoMPreview = ({ formData, discussionNotes, agendaItems, participants, momA
               <div className="flex-1">
                 <span className="text-gray-900">
                   {participants
-                    .map(p => p.userInfo?.fullName || p.member?.userInfo?.fullName || p.member?.fullName || `Member ${p.memberId || p.MemberId || p.id || p.Id}`)
+                    .map(
+                      p => p.userInfo?.fullName || p.member?.userInfo?.fullName || p.member?.fullName || `Member ${p.memberId || p.MemberId || p.id || p.Id}`
+                    )
                     .join(', ')}
                 </span>
               </div>
@@ -90,10 +94,10 @@ const MoMPreview = ({ formData, discussionNotes, agendaItems, participants, momA
       {/* Agenda Items Summary */}
       {agendaItems && agendaItems.length > 0 && (
         <section className="mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-300 flex items-center gap-2">
+          <span className="font-bold text-gray-700 flex items-center gap-2 text-xl pb-2 border-b border-brand">
             <ListChecks className="h-5 w-5" />
             {t('minutes.agendaItemsSummary')}
-          </h2>
+          </span>
           <ol className="list-decimal list-inside space-y-3 ml-4">
             {agendaItems.map((item, index) => (
               <li key={item.id} className="text-gray-900">
@@ -111,10 +115,10 @@ const MoMPreview = ({ formData, discussionNotes, agendaItems, participants, momA
 
       {/* Discussion Notes */}
       <section className="mb-8">
-        <h2 className="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-300 flex items-center gap-2">
+        <span className="font-bold text-gray-700 flex items-center gap-2 text-xl pb-2 border-b border-brand">
           <FileText className="h-5 w-5" />
           {t('minutes.discussionNotes')}
-        </h2>
+        </span>
         <div
           className="prose prose-sm max-w-none text-gray-900 print-view-content"
           dangerouslySetInnerHTML={{ __html: discussionNotes || `<p class="text-gray-500 italic">${t('minutes.noDiscussionNotes')}</p>` }}
@@ -123,7 +127,7 @@ const MoMPreview = ({ formData, discussionNotes, agendaItems, participants, momA
 
       {/* Decisions Section - Hidden for now */}
       {/* <section className="mb-8">
-        <h2 className="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-300 flex items-center gap-2">
+        <h2 className="font-bold text-gray-700 flex items-center gap-2 text-xl pb-2 border-b border-brand">
           <CheckSquare className="h-5 w-5" />
           {t('minutes.decisionsTaken')}
         </h2>
@@ -140,8 +144,8 @@ const MoMPreview = ({ formData, discussionNotes, agendaItems, participants, momA
             pageBreakBefore: 'auto',
           }}
         >
-          <h2
-            className="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-300 flex items-center gap-2"
+          <span
+            className="font-bold text-gray-700 flex items-center gap-2 text-xl pb-2 border-b border-brand"
             style={{
               pageBreakAfter: 'avoid',
               breakAfter: 'avoid',
@@ -149,7 +153,7 @@ const MoMPreview = ({ formData, discussionNotes, agendaItems, participants, momA
           >
             <ListChecks className="h-5 w-5" />
             {t('minutes.actionItems')}
-          </h2>
+          </span>
           <ol className="list-decimal list-inside space-y-3 ml-4" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
             {tasks.map((task, index) => (
               <li key={task.id || task.Id} className="text-gray-900" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
@@ -187,8 +191,8 @@ const MoMPreview = ({ formData, discussionNotes, agendaItems, participants, momA
             paddingTop: '1rem',
           }}
         >
-          <h2
-            className="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-300 flex items-center gap-2"
+          <span
+            className="font-bold text-gray-700 flex items-center gap-2 text-xl pb-2 border-b border-brand"
             style={{
               pageBreakAfter: 'avoid',
               breakAfter: 'avoid',
@@ -196,7 +200,7 @@ const MoMPreview = ({ formData, discussionNotes, agendaItems, participants, momA
           >
             <Vote className="h-5 w-5" />
             {t('minutes.votingResults')}
-          </h2>
+          </span>
           <div className="space-y-4">
             {votes.map(vote => {
               const voteId = vote.id || vote.Id;
@@ -204,7 +208,7 @@ const MoMPreview = ({ formData, discussionNotes, agendaItems, participants, momA
               const isStarted = vote.isStarted || vote.IsStarted;
               const isEnded = vote.isEnded || vote.IsEnded;
               const choices = vote.choices || vote.Choices || [];
-              
+
               // Calculate total votes from choices if available
               const totalVotes = choices.reduce((sum, choice) => {
                 return sum + (choice.voteCount || choice.VoteCount || 0);
@@ -216,18 +220,10 @@ const MoMPreview = ({ formData, discussionNotes, agendaItems, participants, momA
                     <p className="font-semibold text-gray-900">{question}</p>
                     <span
                       className={`px-2 py-1 rounded text-xs font-medium shrink-0 ${
-                        isStarted && !isEnded
-                          ? 'bg-yellow-500/10 text-yellow-600'
-                          : isEnded
-                          ? 'bg-green-500/10 text-green-600'
-                          : 'bg-gray-500/10 text-gray-600'
+                        isStarted && !isEnded ? 'bg-yellow-500/10 text-yellow-600' : isEnded ? 'bg-green-500/10 text-green-600' : 'bg-gray-500/10 text-gray-600'
                       }`}
                     >
-                      {isStarted && !isEnded
-                        ? t('minutes.voteInProgress')
-                        : isEnded
-                        ? t('minutes.voteCompleted')
-                        : t('minutes.votePending')}
+                      {isStarted && !isEnded ? t('minutes.voteInProgress') : isEnded ? t('minutes.voteCompleted') : t('minutes.votePending')}
                     </span>
                   </div>
                   {vote.description && <p className="text-sm text-gray-600 mt-1 mb-2">{vote.description}</p>}
@@ -246,10 +242,10 @@ const MoMPreview = ({ formData, discussionNotes, agendaItems, participants, momA
       {/* Attachments Section */}
       {momAttachments && momAttachments.length > 0 && (
         <section className="mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-300 flex items-center gap-2">
+          <span className="font-bold text-gray-700 flex items-center gap-2 text-xl pb-2 border-b border-brand">
             <Paperclip className="h-5 w-5" />
             {t('minutes.attachmentsLabel')}
-          </h2>
+          </span>
           <ul className="list-disc list-inside space-y-2 ml-4">
             {momAttachments.map(att => (
               <li key={att.id} className="text-gray-900">
